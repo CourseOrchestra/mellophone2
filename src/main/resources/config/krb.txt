@@ -1,0 +1,56 @@
+# 
+#
+#pragma ident	@(#)krb5.conf	
+
+[libdefaults]
+
+#default_tkt_enctypes = des-cbc-md5 des-cbc-crc des3-cbc-sha1
+#default_tgs_enctypes = des-cbc-md5 des-cbc-crc des3-cbc-sha1
+#permitted_enctypes = des-cbc-md5 des-cbc-crc des3-cbc-sha1
+
+default_realm = CURS.RU
+default_checksum = rsa-md5
+#default_checksum = crc32
+
+[realms]
+CURS.RU = {
+kdc = SERVER
+}
+
+[domain_realm]
+.jnditutorial.org = JNDITUTORIAL.ORG
+
+[logging]
+default = kdc.log
+kdc = kdc.log
+kdc_rotate = {
+
+# How often to rotate kdc.log. Logs will get rotated no more
+# often than the period, and less often if the KDC is not used
+# frequently.
+
+		period = 1d
+
+# how many versions of kdc.log to keep around (kdc.log.0, kdc.log.1, ...)
+
+		versions = 10
+}
+
+[appdefaults]
+gkadmin = {
+   	help_url = http://localhost:8888/ab2/coll.384.2/SEAM
+}
+kinit = {
+	renewable = true
+	forwardable= true
+}
+rlogin = {
+	forwardable= true
+}
+rsh = {
+	forwardable= true
+}
+telnet = {
+   	autologin = true 
+	forwardable= true
+}

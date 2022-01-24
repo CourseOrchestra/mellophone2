@@ -1,0 +1,33 @@
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+	<appender name="NT" class="org.apache.log4j.nt.NTEventLogAppender">
+		<param name="source" value="timex" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%p %c{1}.%M: %m%n" />
+		</layout>
+	</appender>
+	<appender name="Console" class="org.apache.log4j.ConsoleAppender">
+		<param name="Target" value="System.out" />
+		<layout class="org.apache.log4j.PatternLayout">
+<!--			<param name="ConversionPattern" value="%p %c{1}.%M: %m%n" />  -->
+			<param name="ConversionPattern" value="%d{ABSOLUTE} %5p %t %c{1}.%M():line %L: %m%n" />			
+		</layout>
+	</appender>
+	<appender name="LogFile" class="org.apache.log4j.RollingFileAppender">
+		<param name="file" value="c:\\app.log" />
+		<param name="MaxFileSize" value="100KB" />
+		<!-- число резервных копий лога -->
+		<param name="MaxBackupIndex" value="1" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%p %c{1}.%M: %m%n" />
+		</layout>
+  </appender>	
+	<root>
+		<priority value="debug" />
+		<appender-ref ref="Console" />
+<!--Для вывода в файл нужно добавить строку внутрь тэга <root>-->
+<!--<appender-ref ref="LogFile"/> и указать правильное имя файла в <appender name="LogFile">.-->
+<!--Также можно включить вывод ошибок в системный лог Windows-->
+<!--(<appender name="NT">).-->		
+	</root>
+</log4j:configuration>

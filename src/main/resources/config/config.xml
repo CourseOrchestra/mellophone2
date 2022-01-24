@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.curs.ru/authserver config.xsd" xmlns="http://www.curs.ru/authserver">
+
+
+    <common>
+        <threadcount>1</threadcount>
+
+        <!--
+                <sessiontimeout>1440</sessiontimeout>
+        -->
+
+        <authsessions initialCapacity="10000" loadFactor="80" concurrencyLevel="128"/>
+        <appsessions initialCapacity="10000" loadFactor="80" concurrencyLevel="128"/>
+
+        <lockouttime>1</lockouttime>
+
+        <loginattemptsallowed>3</loginattemptsallowed>
+
+        <setsettingstoken>43c42c2ee9210b0a77166a37f82bb4b6</setsettingstoken>
+
+        <getuserlisttoken>9ed41e1e40ff47208d8e0943b918a554</getuserlisttoken>
+
+        <showtimetounlockuser>true</showtimetounlockuser>
+
+        <checkpasswordhashonly>false</checkpasswordhashonly>
+    </common>
+
+
+
+    <sqlserverext>
+        <id>test2</id>
+        <group_providers>Группа1</group_providers>
+        <logging>true</logging>
+        <url>jdbc:postgresql://localhost:5432/test</url>
+        <connectionusername>postgres</connectionusername>
+        <connectionpassword>F708420Dx</connectionpassword>
+        <table>User</table>
+        <tableattr>UserAttr</tableattr>
+        <procpostprocess>postprocess</procpostprocess>
+    </sqlserverext>
+
+
+<!--
+    <hashalgorithm>SHA-128</hashalgorithm>
+    <localsecuritysalt>dddd</localsecuritysalt>
+-->
+
+
+<!--
+    <sqlserverext>
+        <logging>true</logging>
+        <url>jdbc:postgresql://localhost:5432/test</url>
+        <connectionusername>postgres</connectionusername>
+        <connectionpassword>F708420Dx</connectionpassword>
+        <table>User22</table>
+        <tableattr>UserAttr22</tableattr>
+    </sqlserverext>
+-->
+
+
+
+
+<!--
+    <sqlserver>
+        <logging>true</logging>
+        <url>jdbc:postgresql://localhost:5432/test</url>
+        <connectionusername>postgres</connectionusername>
+        <connectionpassword>F708420Dx</connectionpassword>
+        <table>Пользователи</table>
+        <fieldlogin>Логин</fieldlogin>
+        <fieldpassword>Пароль</fieldpassword>
+        <fieldblocked>Заблокированный</fieldblocked>
+        <searchreturningattributes
+                SID="Поле objectSid"
+                login="Логин"
+                name="Поле name"
+                email="Поле email"
+                phone="Поле phone"
+                organization = ""
+                fax = "Поле fax"
+        />
+    </sqlserver>
+-->
+
+
+
+
+
+
+<!--
+        <xmlfile>
+            <id>test2</id>
+            <logging>true</logging>
+            <url>
+                C:\\Users\\Boris\\IdeaProjects\\mellophone\\src\\main\\resources\\config\\samples\\users.xml
+            </url>
+            <trusteduser>Иванов1</trusteduser>
+        </xmlfile>
+-->
+
+
+
+
+    <!--
+        <ldapserver>
+            <group_providers>Группа1</group_providers>
+            <domain_name>@Office</domain_name>
+            <logging>false</logging>
+            <servertype>MSActiveDirectory</servertype>
+            <url>ldap://server-2:389</url>
+            <usessl>false</usessl>
+            <sat>Simple</sat>
+            <searchbase>CN=Builtin,DC=curs,DC=ru</searchbase>
+            <searchbase>CN=Users,DC=curs,DC=ru</searchbase>
+            <searchbase>OU=Office,DC=curs,DC=ru</searchbase>
+            <searchreturningattributes
+                    SID="objectSid"
+                    login="sAMAccountName"
+                    name="name"
+                    email="targetAddress"
+                    phone="telephoneNumber"
+                    organization = ""
+                    fax = ""
+            />
+            <searchfilterforuser>
+                (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(sAMAccountName=%s))
+            </searchfilterforuser>
+            <searchfilterforimport>
+                (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+            </searchfilterforimport>
+        </ldapserver>
+
+    -->
+
+
+    <!--
+
+        <xmlfile>
+            <id>test2</id>
+            <logging>false</logging>
+            <url>
+                D:/IdeaProjects/mellophone/src/main/resources/config/samples/users.xml
+            </url>
+            <trusteduser>Иванов1</trusteduser>
+        </xmlfile>
+    -->
+
+
+    <!--        <url>jdbc:firebirdsql://10.248.2.118:3050/E:/shuffle-gate/db/SHUFFLE-GATE.FDB?encoding=UTF8</url>-->
+    <!--        <url>jdbc:firebirdsql://10.248.2.118:3050/c:/shuffle-gate/RedDatabase(x64)/security2.fdb?encoding=UTF8</url>-->
+    <!--        <connectionpassword>KFJw8QO!</connectionpassword>-->
+    <!--        <table>SYS_USERS</table>-->
+    <!--        <fieldpassword>SUSER_PASSWORD</fieldpassword>-->
+
+    <!--
+            <authmethod>CONNECT</authmethod>
+            <authmethod>CHECK</authmethod>
+    -->
+
+
+    <!--
+
+    <sqlserver>
+        <id>prod</id>
+        <logging>true</logging>
+
+
+        <url>jdbc:firebirdsql://157.245.72.161:3050//db/ISMO.FDB?encoding=UTF8</url>
+
+        <connectionusername>sysdba</connectionusername>
+        <connectionpassword>masterkey</connectionpassword>
+
+        <table>CURS_AUTH</table>
+        <fieldlogin>SUSER_NAME</fieldlogin>
+
+        <fieldblocked>SUSER_BLOCKED</fieldblocked>
+        <hashalgorithm>SHA-256</hashalgorithm>
+        <localsecuritysalt>0763bdd890421f02bba7bfe8b456c69f</localsecuritysalt>
+
+        <searchreturningattributes
+                SID="SUSER_ID"
+                login="SUSER_NAME"
+                name="SUSER_FIO"
+                email="EMAIL_ADDRESS"
+                description="SUSER_DESCRIPTION"
+                organization_id="MUSR_AGENT_DEPT_CODE"
+                organization="MUSR_AGENT_DEPT_CAPTION"
+        />
+
+        <authmethod>CONNECT</authmethod>
+
+    </sqlserver>
+
+    -->
+
+    <!--
+        <sqlserver>
+            <id>test</id>
+            <logging>true</logging>
+            <url>jdbc:firebirdsql://localhost:3050/D:/Program Files/RedDatabase/examples/empbuild/EMPLOYEE.FDB</url>
+            <connectionusername>SYSDBA</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>USERS</table>
+            <fieldlogin>LOGIN</fieldlogin>
+            <fieldpassword>PASSWORD</fieldpassword>
+            <fieldblocked>IS_BLOCKED</fieldblocked>
+            <hashalgorithm>SHA-256</hashalgorithm>
+            <localsecuritysalt>0763bdd890421f02bba7bfe8b456c69f</localsecuritysalt>
+
+            <trusteduser>Иванов1</trusteduser>
+            <trusteduser>Петров1</trusteduser>
+
+
+            <procpostprocess>POST_PROCESS</procpostprocess>
+
+
+            <searchreturningattributes
+                    SID="OBJECTSID"
+                    login="LOGIN"
+                    name="NAME"
+                    email="EMAIL"
+                    phone="PHONE"
+                    organization=""
+                    fax="FAX"
+            />
+        </sqlserver>
+    -->
+
+
+    <!--
+    -->
+    <!--
+        <sqlserver>
+            <id>test</id>
+            <logging>true</logging>
+            <url>jdbc:sqlserver://BORIS2\\SQL8R2_RUS_TEST2:1145;databaseName=showcase</url>
+            <connectionusername>sa</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>Пользователи</table>
+            <fieldlogin>Логин</fieldlogin>
+            <fieldpassword>Пароль</fieldpassword>
+            <fieldblocked>Заблокированный</fieldblocked>
+            <hashalgorithm>SHA-256</hashalgorithm>
+            <localsecuritysalt>0763bdd890421f02bba7bfe8b456c69f</localsecuritysalt>
+
+            <trusteduser>Иванов1</trusteduser>
+            <trusteduser>Петров1</trusteduser>
+
+
+            &lt;!&ndash;        <procpostprocess>postProcess</procpostprocess>&ndash;&gt;
+
+
+            <searchreturningattributes
+                    SID="Поле objectSid"
+                    login="Логин"
+                    name="Поле name"
+                    email="Поле email"
+                    phone="Поле phone"
+                    organization=""
+                    fax="Поле fax"
+            />
+        </sqlserver>
+    -->
+
+
+    <!--
+        <sqlserver>
+            <logging>true</logging>
+            <url>jdbc:sqlserver://172.16.1.163\\SQLEXPRESS01:53006;databasename=mashim_3</url>
+            <connectionusername>sa</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>main.users</table>
+            <fieldlogin>login</fieldlogin>
+            <fieldpassword>password</fieldpassword>
+            <searchreturningattributes
+                    SID="sid"
+                    login="login"
+                    name="name"
+                    additionalParameter="login"
+                    email="email"
+                    employee_id="Employees_Id"
+                    group_id="podrId"
+            />
+        </sqlserver>
+    -->
+
+
+    <!--
+    <sqlserver>
+        <logging>true</logging>
+        <url>jdbc\:sqlserver\://172.16.1.163\\SQLEXPRESS01;databasename=mashim_2;user\=sa;password\=F708420Dx</url>
+        <connectionusername>sa</connectionusername>
+        <connectionpassword>F708420Dx</connectionpassword>
+        <table>main.users</table>
+        <fieldlogin>login</fieldlogin>
+        <fieldpassword>password</fieldpassword>
+        <searchreturningattributes
+                SID="sid"
+                login="login"
+                name="name"
+                additionalParameter="login"
+                email="email"
+                employee_id="Employees_Id"
+                group_id="podrId"
+        />
+    </sqlserver>
+    -->
+
+
+    <!--
+
+
+        <sqlserver>
+            <logging>true</logging>
+            <url>jdbc:postgresql://localhost:5432/postgres</url>
+            <connectionusername>postgres</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>Пользователи</table>
+            <fieldlogin>Логин</fieldlogin>
+            <fieldpassword>Пароль</fieldpassword>
+            <fieldblocked>Заблокированный</fieldblocked>
+            <searchreturningattributes
+              SID="Поле objectSid"
+              login="Логин"
+              name="Поле name"
+              email="Поле email"
+              phone="Поле phone"
+              organization = ""
+              fax = "Поле fax"
+            />
+        </sqlserver>
+
+    -->
+
+
+    <!--
+            <url>http://share.kurs-it.ru:8080/</url>
+            <url>http://localhost:8082/mellophone/</url>
+    -->
+
+    <!--
+        <iasbpserver>
+            <logging>true</logging>
+            <url>http://share.kurs-it.ru:8080/</url>
+        </iasbpserver>
+    -->
+
+
+    <!--
+
+
+        <sqlserver>
+            <logging>true</logging>
+            <url>jdbc:sqlserver://BORIS2\\SQL8R2_RUS_TEST2:1145;databaseName=showcase</url>
+            <connectionusername>sa</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>Пользователи</table>
+            <fieldlogin>Логин</fieldlogin>
+            <fieldpassword>Пароль</fieldpassword>
+            <proccheckuser>checkUserIP</proccheckuser>
+            <searchreturningattributes
+              SID="Поле objectSid"
+              login="Логин"
+              name="Поле name"
+              email="Поле email"
+              phone="Поле phone"
+              organization = ""
+              fax = "Поле fax"
+            />
+        </sqlserver>
+
+
+
+
+
+        <ldapserver>
+            <group_providers>Группа2</group_providers>
+            <logging>false</logging>
+            <servertype>MSActiveDirectory</servertype>
+            <url>ldap://server2:389</url>
+            <usessl>false</usessl>
+            <sat>DIGEST_MD5</sat>
+            <searchbase>CN=Builtin,DC=curs,DC=ru</searchbase>
+            <searchbase>CN=Users,DC=curs,DC=ru</searchbase>
+            <searchbase>OU=Office,DC=curs,DC=ru</searchbase>
+            <searchreturningattributes
+              SID="objectSid"
+              login="sAMAccountName"
+              name="name"
+              email="targetAddress"
+              phone="telephoneNumber"
+              organization = ""
+              fax = ""
+            />
+            <searchfilterforuser>
+              (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(sAMAccountName=%s))
+              </searchfilterforuser>
+            <searchfilterforimport>
+              (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+            </searchfilterforimport>
+        </ldapserver>
+
+
+
+        <ldapserver>
+            <group_providers>Группа1</group_providers>
+            <domain_name>openbank3</domain_name>
+            <logging>false</logging>
+            <servertype>MSActiveDirectory</servertype>
+            <url>ldap://server3:389</url>
+            <usessl>false</usessl>
+            <sat>DIGEST_MD5</sat>
+            <searchbase>CN=Builtin,DC=curs,DC=ru</searchbase>
+            <searchbase>CN=Users,DC=curs,DC=ru</searchbase>
+            <searchbase>OU=Office,DC=curs,DC=ru</searchbase>
+            <searchreturningattributes
+              SID="objectSid"
+              login="sAMAccountName"
+              name="name"
+              email="targetAddress"
+              phone="telephoneNumber"
+              organization = ""
+              fax = ""
+            />
+            <searchfilterforuser>
+              (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(sAMAccountName=%s))
+              </searchfilterforuser>
+            <searchfilterforimport>
+              (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+            </searchfilterforimport>
+        </ldapserver>
+
+
+        <ldapserver>
+            <group_providers>Группа2</group_providers>
+            <domain_name></domain_name>
+            <logging>false</logging>
+            <servertype>MSActiveDirectory</servertype>
+            <url>ldap://server5:389</url>
+            <usessl>false</usessl>
+            <sat>DIGEST_MD5</sat>
+            <searchbase>CN=Builtin,DC=curs,DC=ru</searchbase>
+            <searchbase>CN=Users,DC=curs,DC=ru</searchbase>
+            <searchbase>OU=Office,DC=curs,DC=ru</searchbase>
+            <searchreturningattributes
+              SID="objectSid"
+              login="sAMAccountName"
+              name="name"
+              email="targetAddress"
+              phone="telephoneNumber"
+              organization = ""
+              fax = ""
+            />
+            <searchfilterforuser>
+              (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(sAMAccountName=%s))
+              </searchfilterforuser>
+            <searchfilterforimport>
+              (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+            </searchfilterforimport>
+        </ldapserver>
+
+
+
+        <ldapserver>
+            <domain_name>openbank4</domain_name>
+            <logging>false</logging>
+            <servertype>MSActiveDirectory</servertype>
+            <url>ldap://server4:389</url>
+            <usessl>false</usessl>
+            <sat>DIGEST_MD5</sat>
+            <searchbase>CN=Builtin,DC=curs,DC=ru</searchbase>
+            <searchbase>CN=Users,DC=curs,DC=ru</searchbase>
+            <searchbase>OU=Office,DC=curs,DC=ru</searchbase>
+            <searchreturningattributes
+              SID="objectSid"
+              login="sAMAccountName"
+              name="name"
+              email="targetAddress"
+              phone="telephoneNumber"
+              organization = ""
+              fax = ""
+            />
+            <searchfilterforuser>
+              (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(sAMAccountName=%s))
+              </searchfilterforuser>
+            <searchfilterforimport>
+              (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+            </searchfilterforimport>
+        </ldapserver>
+
+
+
+
+
+
+        sessiontimeout - время актуальности сессии, задается в минутах
+
+
+        Для xmlfile в url может быть либо абсолютный путь, либо относительный (относительно
+        директории установки Томката (чтобы можно было вносить правки
+        в users.xml без перезагрузки Томката))
+
+
+
+        <xmlfile>
+            <logging>true</logging>
+            <url>
+            D:/workspace/AuthServer/WebContent/WEB-INF/classes/config/samples/users.xml
+            </url>
+        </xmlfile>
+
+
+
+        <ldapserver>
+            <logging>false</logging>
+            <servertype>ApacheDS</servertype>
+            <url>ldap://localhost:10389</url>
+            <usessl>false</usessl>
+            <sat>Simple</sat>
+            <searchbase>ou=users,ou=system</searchbase>
+            <searchreturningattributes
+              SID="entryUUID"
+              login="uid"
+              name="cn"
+              email="mail"
+              phone="homePhone"
+              organization = "o"
+              fax = "facsimileTelephoneNumber"
+            />
+            <searchfilterforuser>
+              (&amp;(objectClass=inetOrgPerson)(uid=%s))
+              </searchfilterforuser>
+            <searchfilterforimport>
+              (&amp;(objectClass=inetOrgPerson))
+            </searchfilterforimport>
+        </ldapserver>
+
+        <ldapserver>
+
+            <domain_name>openbank</domain_name>
+            <logging>false</logging>
+            <servertype>MSActiveDirectory</servertype>
+            <url>ldap://server:389</url>
+            <usessl>false</usessl>
+            <sat>DIGEST_MD5</sat>
+            <searchbase>CN=Builtin,DC=curs,DC=ru</searchbase>
+            <searchbase>CN=Users,DC=curs,DC=ru</searchbase>
+            <searchbase>OU=Office,DC=curs,DC=ru</searchbase>
+            <searchreturningattributes
+              SID="objectSid"
+              login="sAMAccountName"
+              name="name"
+              email="targetAddress"
+              phone="telephoneNumber"
+              organization = ""
+              fax = ""
+            />
+            <searchfilterforuser>
+              (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(sAMAccountName=%s))
+              </searchfilterforuser>
+            <searchfilterforimport>
+              (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+            </searchfilterforimport>
+        </ldapserver>
+
+        <httpserver>
+            <logging>true</logging>
+            <url>http://info.ondp2012.ru/security/</url>
+            <validateuser>ValidateUser</validateuser>
+            <userinfobyname>User/%s</userinfobyname>
+            <userinfobyid>User/Id/%s</userinfobyid>
+        </httpserver>
+
+
+
+        <sqlserver>
+            <logging>true</logging>
+            <url>jdbc:sqlserver://BORIS2\\SQL8R2_RUS_TEST2:1145;databaseName=showcase</url>
+            <connectionusername>sa</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>Пользователи</table>
+            <fieldlogin>Логин</fieldlogin>
+            <fieldpassword>Пароль</fieldpassword>
+            <searchreturningattributes
+              SID="Поле objectSid"
+              login="Логин"
+              name="Поле name"
+              email="Поле email"
+              phone="Поле phone"
+              organization = ""
+              fax = "Поле fax"
+            />
+        </sqlserver>
+
+        <sqlserver>
+            <logging>true</logging>
+            <url>jdbc:postgresql://localhost:5432/test_db</url>
+            <connectionusername>postgres</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>Пользователи</table>
+            <fieldlogin>Логин</fieldlogin>
+            <fieldpassword>Пароль</fieldpassword>
+            <searchreturningattributes
+              SID="Поле objectSid"
+              login="Логин"
+              name="Поле name"
+              email="Поле email"
+              phone="Поле phone"
+              organization = ""
+              fax = "Поле fax"
+            />
+        </sqlserver>
+
+        <sqlserver>
+            <logging>true</logging>
+            <url>jdbc:oracle:thin:@localhost:1521:orcl</url>
+            <connectionusername>CARTRADE</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>ПОЛЬЗОВАТЕЛИ</table>
+            <fieldlogin>Логин</fieldlogin>
+            <fieldpassword>Пароль</fieldpassword>
+            <searchreturningattributes
+              SID="Поле objectSid"
+              login="Логин"
+              name="Поле name"
+              email="Поле email"
+              phone="Поле phone"
+              organization = ""
+              fax = "Поле fax"
+            />
+        </sqlserver>
+
+    -->
+
+</config>
+
+
+
+
+
+
+
+
+
+

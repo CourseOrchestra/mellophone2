@@ -1,0 +1,35 @@
+version: 1
+
+dn: ou=users,ou=system
+objectClass: organizationalUnit
+objectClass: top
+ou: users
+
+dn:: dWlkPdCh0LjQtNC+0YDQvtCyQXBhY2hlLG91PXVzZXJzLG91PXN5c3RlbQ==
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn:: 0JDQu9C10LrRgdC10Lkg0JIuINCS0LDRgdC40LvRjNC10LI=
+sn:: 0JLQsNGB0LjQu9GM0LXQsg==
+facsimileTelephoneNumber: 2-987-65-43
+homePhone: 2-123-45-67
+mail: mail2
+o:: 0L7RgNCz0LDQvdC40LfQsNGG0LjRjzI=
+uid:: 0KHQuNC00L7RgNC+0LJBcGFjaGU=
+userPassword:: e1NIQX16Z2p4aFl6ZWM1THNlSDVKZmdjdzBiQ0VIcnc9
+
+dn:: dWlkPdCf0LXRgtGA0L7QskFwYWNoZSxvdT11c2VycyxvdT1zeXN0ZW0=
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn:: 0JHQvtGA0LjRgSDQki4g0KHQvNC40YDQvdC+0LI=
+sn:: 0KHQvNC40YDQvdC+0LI=
+facsimileTelephoneNumber: 1-987-65-43
+homePhone: 1-123-45-67
+mail: mail1
+o:: 0L7RgNCz0LDQvdC40LfQsNGG0LjRjzE=
+uid:: 0J/QtdGC0YDQvtCyQXBhY2hl
+userPassword:: e1NIQX15Q00vd1lwZjBQaHloTm42bHhCSmlSTVY3WVE9
+

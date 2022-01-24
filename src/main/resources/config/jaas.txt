@@ -1,0 +1,15 @@
+/** 
+ * Login Configuration for JAAS.
+ *
+ * Внимание!!!  После внесения изменений в этот файл необходимо перезапустить Томкат!!!
+ * 
+ */
+ 
+ 
+/* 
+ru.curs.mellophone.logic.AuthManager
+*/
+
+ru.curs.mellophone.logic.AuthManager {
+  com.sun.security.auth.module.Krb5LoginModule required client=TRUE useTicketCache=FALSE refreshKrb5Config=TRUE;
+};

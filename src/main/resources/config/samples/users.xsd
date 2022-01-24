@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+    targetNamespace="http://www.curs.ru/authserver" xmlns:as="http://www.curs.ru/authserver">
+    <xs:element name="users">
+        <xs:complexType>
+            <xs:sequence maxOccurs="unbounded">
+                <xs:element name="user">
+                    <xs:complexType>
+                        <xs:attribute name="login" type="xs:string" use="required"/>
+                        <xs:attribute name="password" type="xs:string" use="required"/>
+                        <xs:attribute name="SID" type="xs:string" use="required"/>
+                        <xs:attribute name="name" type="xs:string" use="optional"/>
+                        <xs:attribute name="email" type="xs:string" use="optional"/>
+                        <xs:attribute name="phone" type="xs:string" use="optional"/>
+                        <xs:attribute name="organization" type="xs:string" use="optional"/>
+                        <xs:attribute name="fax" type="xs:string" use="optional"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
