@@ -10,21 +10,11 @@ import ru.curs.mellophone.service.MellophoneService;
 @RestController
 @CrossOrigin
 @RequestMapping("/mellophone")
-public class MellophoneController {
-
-    private final MellophoneService mellophoneService;
-
-    public MellophoneController(MellophoneService mellophoneService) {
-        this.mellophoneService = mellophoneService;
-    }
-
+public record MellophoneController(MellophoneService mellophoneService) {
 
     @GetMapping("/login")
     public String login() {
-
         return mellophoneService.login();
-
-
     }
 
 }

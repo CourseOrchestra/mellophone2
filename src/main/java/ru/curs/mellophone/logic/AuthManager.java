@@ -43,8 +43,7 @@ public final class AuthManager {
     private static final String ERROR_PARSING_CONFIG_XML = "Ошибка при разборе файла конфигурации config.xml: %s";
     private static final String SESID_NOT_AUTH = "Сессия приложения с идентификатором %s не аутентифицирована.";
     private static final String PROVIDER_ERROR = "При взаимодействии с логин-провайдером произошла следующая ошибка: %s";
-    private static final String LOGIN_TO_PROVIDER_SUCCESSFUL_BUT_USER_NOT_FOUND_IN_BASE = "Логин "
-            + "прошел успешно, но данный пользователь не найден в базе.";
+    private static final String LOGIN_TO_PROVIDER_SUCCESSFUL_BUT_USER_NOT_FOUND_IN_BASE = "Логин " + "прошел успешно, но данный пользователь не найден в базе.";
     private static final String USER_IS_LOCKED_OUT_FOR_TOO_MANY_UNSUCCESSFUL_LOGIN_ATTEMPTS = "User %s is locked out for too many unsuccessful login attempts.";
     private static final String TIME_TO_UNLOCK = "Time to unlock: %s s.";
     /**
@@ -177,8 +176,7 @@ public final class AuthManager {
 
             File configFile = new File(configPath);
             if (!configFile.exists()) {
-                initializationError = "файл конфигурации "
-                        + configFile.getCanonicalPath() + " не существует.";
+                initializationError = "файл конфигурации " + configFile.getCanonicalPath() + " не существует.";
                 return;
             }
 
@@ -201,20 +199,14 @@ public final class AuthManager {
             // Читаем все настройки из XML...
             ConfigParser p = new ConfigParser();
             try {
-                SaxonTransformerFactory
-                        .newInstance()
-                        .newTransformer()
-                        .transform(new StreamSource(configFile),
-                                new SAXResult(p));
+                SaxonTransformerFactory.newInstance().newTransformer().transform(new StreamSource(configFile), new SAXResult(p));
             } catch (Exception e) {
-                initializationError = "произошла ошибка при чтении файла конфигурации "
-                        + configFile.getCanonicalPath() + " " + e.getMessage();
+                initializationError = "произошла ошибка при чтении файла конфигурации " + configFile.getCanonicalPath() + " " + e.getMessage();
                 return;
             }
 
             if (loginProviders.stream().filter(lp -> "sqlserverext".equals(lp.getType())).collect(Collectors.toList()).size() > 1) {
-                initializationError = "файл конфигурации " + configFile.getCanonicalPath()
-                        + " содержит более одного sqlserverext провайдера аутентификации";
+                initializationError = "файл конфигурации " + configFile.getCanonicalPath() + " содержит более одного sqlserverext провайдера аутентификации";
                 return;
             }
 
@@ -227,8 +219,7 @@ public final class AuthManager {
             }
         } finally {
             if (initializationError != null) {
-                initializationError = "Mellophone не инициализирован по причине: "
-                        + initializationError;
+                initializationError = "Mellophone не инициализирован по причине: " + initializationError;
             }
         }
 
@@ -252,23 +243,17 @@ public final class AuthManager {
             File configTestFile = new File("src/test/java/ru/curs/mellophone/test/config_test.xml");
             InputStream is = new FileInputStream(configTestFile);
 
-            SaxonTransformerFactory.newInstance().newTransformer()
-                    .transform(new StreamSource(is), new SAXResult(p));
+            SaxonTransformerFactory.newInstance().newTransformer().transform(new StreamSource(is), new SAXResult(p));
         } catch (Exception e) {
-            throw EAuthServerLogic.create(String.format(
-                    ERROR_PARSING_CONFIG_XML, e.getMessage()));
+            throw EAuthServerLogic.create(String.format(ERROR_PARSING_CONFIG_XML, e.getMessage()));
         }
 
         commonInitialize();
     }
 
     private void commonInitialize() {
-        authsessions = new ConcurrentHashMap<String, AuthSession>(
-                authsessionsInitialCapacity, authsessionsLoadFactor,
-                authsessionsConcurrencyLevel);
-        appsessions = new ConcurrentHashMap<String, String>(
-                appsessionsInitialCapacity, appsessionsLoadFactor,
-                appsessionsConcurrencyLevel);
+        authsessions = new ConcurrentHashMap<String, AuthSession>(authsessionsInitialCapacity, authsessionsLoadFactor, authsessionsConcurrencyLevel);
+        appsessions = new ConcurrentHashMap<String, String>(appsessionsInitialCapacity, appsessionsLoadFactor, appsessionsConcurrencyLevel);
 
         if (sessionTimeout > 0) {
             timerTimeout = new Timer();
@@ -282,9 +267,7 @@ public final class AuthManager {
         }
     }
 
-    public void checkCredentials(final String groupProviders, final String login,
-                                 final String password, final String ip, final PrintWriter pw)
-            throws EAuthServerLogic {
+    public void checkCredentials(final String groupProviders, final String login, final String password, final String ip, final PrintWriter pw) throws EAuthServerLogic {
 
         if (lockouts.isLocked(login)) {
             String s = getMessageUserIslockedOutForTooManyUnsuccessfulLoginAttempts(null, login, ip);
@@ -296,13 +279,10 @@ public final class AuthManager {
 
         final StringBuffer errlog = new StringBuffer();
         final StringBuffer resumeMessage = new StringBuffer();
-        final Vector<AbstractLoginProvider> result = new Vector<AbstractLoginProvider>(
-                1);
-        final Vector<AbstractLoginProvider> taskPool = new Vector<AbstractLoginProvider>(
-                loginProviders.size());
+        final Vector<AbstractLoginProvider> result = new Vector<AbstractLoginProvider>(1);
+        final Vector<AbstractLoginProvider> taskPool = new Vector<AbstractLoginProvider>(loginProviders.size());
         for (AbstractLoginProvider p : loginProviders)
-            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders))
-                    || (groupProviders.equals(p.getGroupProviders())))
+            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(p.getGroupProviders())))
                 taskPool.add(p);
 
 
@@ -329,8 +309,7 @@ public final class AuthManager {
         class LoginThread extends Thread {
             private AbstractLoginProvider getNext() {
                 synchronized (taskPool) {
-                    return taskPool.size() == 0 ? null : taskPool
-                            .remove(taskPool.size() - 1);
+                    return taskPool.size() == 0 ? null : taskPool.remove(taskPool.size() - 1);
                 }
 
             }
@@ -340,21 +319,15 @@ public final class AuthManager {
                 AbstractLoginProvider curProvider = getNext();
                 while (curProvider != null) {
                     try {
-                        ProviderContextHolder ch = curProvider
-                                .newContextHolder();
+                        ProviderContextHolder ch = curProvider.newContextHolder();
                         try {
 
                             curProvider.connect(null, login, password, ip, ch, pw);
 
-                            if (
-                                    (!"SQLLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName()))
-                                            && (!"SQLExtLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName()))
-                                            && (!"IASBPLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName()))
-                            ) {
+                            if ((!"SQLLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName())) && (!"IASBPLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName()))) {
                                 curProvider.getUserInfoByName(ch, login, pw);
                                 if ("".equals(pw.toString().trim())) {
-                                    throw EAuthServerLogic
-                                            .create(LOGIN_TO_PROVIDER_SUCCESSFUL_BUT_USER_NOT_FOUND_IN_BASE);
+                                    throw EAuthServerLogic.create(LOGIN_TO_PROVIDER_SUCCESSFUL_BUT_USER_NOT_FOUND_IN_BASE);
                                 }
                             }
 
@@ -367,16 +340,14 @@ public final class AuthManager {
                         result.add(curProvider);
                         break;
                     } catch (EAuthServerLogic e) {
-                        errlog.append(curProvider.getConnectionUrl() + ": "
-                                + e.getMessage() + "\n");
+                        errlog.append(curProvider.getConnectionUrl() + ": " + e.getMessage() + "\n");
 
                         if (e.getBadLoginType() == BadLoginType.BAD_PROC_CHECK_USER) {
                             resumeMessage.delete(0, resumeMessage.length());
                             resumeMessage.append(e.getMessage());
                         } else {
                             if (resumeMessage.length() == 0) {
-                                resumeMessage
-                                        .append("Неправильная пара логин/пароль");
+                                resumeMessage.append("Неправильная пара логин/пароль");
                             }
                         }
 
@@ -407,9 +378,7 @@ public final class AuthManager {
                 errlog.append("Неправильная пара логин/пароль");
             }
             lockouts.loginFail(login);
-            throw EAuthServerLogic
-                    .create(String.format(PROVIDER_ERROR, errlog
-                            + "\nРезюме: " + resumeMessage));
+            throw EAuthServerLogic.create(String.format(PROVIDER_ERROR, errlog + "\nРезюме: " + resumeMessage));
         }
 
 
@@ -418,9 +387,7 @@ public final class AuthManager {
     }
 
 
-    public void getProviderList(final String groupProviders, final String login,
-                                final String password, final String ip, final PrintWriter pw)
-            throws EAuthServerLogic {
+    public void getProviderList(final String groupProviders, final String login, final String password, final String ip, final PrintWriter pw) throws EAuthServerLogic {
 
         if (lockouts.isLocked(login)) {
             String s = getMessageUserIslockedOutForTooManyUnsuccessfulLoginAttempts(null, login, ip);
@@ -432,13 +399,10 @@ public final class AuthManager {
 
         final StringBuffer errlog = new StringBuffer();
         final StringBuffer resumeMessage = new StringBuffer();
-        final Vector<AbstractLoginProvider> result = new Vector<AbstractLoginProvider>(
-                1);
-        final Vector<AbstractLoginProvider> taskPool = new Vector<AbstractLoginProvider>(
-                loginProviders.size());
+        final Vector<AbstractLoginProvider> result = new Vector<AbstractLoginProvider>(1);
+        final Vector<AbstractLoginProvider> taskPool = new Vector<AbstractLoginProvider>(loginProviders.size());
         for (AbstractLoginProvider p : loginProviders)
-            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders))
-                    || (groupProviders.equals(p.getGroupProviders())))
+            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(p.getGroupProviders())))
                 taskPool.add(p);
 
 
@@ -465,8 +429,7 @@ public final class AuthManager {
         class LoginThread extends Thread {
             private AbstractLoginProvider getNext() {
                 synchronized (taskPool) {
-                    return taskPool.size() == 0 ? null : taskPool
-                            .remove(taskPool.size() - 1);
+                    return taskPool.size() == 0 ? null : taskPool.remove(taskPool.size() - 1);
                 }
 
             }
@@ -476,20 +439,17 @@ public final class AuthManager {
                 AbstractLoginProvider curProvider = getNext();
                 while (curProvider != null) {
                     try {
-                        ProviderContextHolder ch = curProvider
-                                .newContextHolder();
+                        ProviderContextHolder ch = curProvider.newContextHolder();
                         try {
 
                             curProvider.connect(null, login, password, ip, ch, null);
 
                             try {
-                                XMLStreamWriter xw = XMLOutputFactory.newInstance()
-                                        .createXMLStreamWriter(pw);
+                                XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(pw);
                                 xw.writeStartDocument("utf-8", "1.0");
                                 xw.writeStartElement("providers");
                                 for (AbstractLoginProvider alp : loginProviders) {
-                                    if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders))
-                                            || (groupProviders.equals(alp.getGroupProviders()))) {
+                                    if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(alp.getGroupProviders()))) {
                                         xw.writeEmptyElement("provider");
                                         xw.writeAttribute("id", alp.getId());
                                         xw.writeAttribute("type", alp.getType());
@@ -512,16 +472,14 @@ public final class AuthManager {
                         result.add(curProvider);
                         break;
                     } catch (EAuthServerLogic e) {
-                        errlog.append(curProvider.getConnectionUrl() + ": "
-                                + e.getMessage() + "\n");
+                        errlog.append(curProvider.getConnectionUrl() + ": " + e.getMessage() + "\n");
 
                         if (e.getBadLoginType() == BadLoginType.BAD_PROC_CHECK_USER) {
                             resumeMessage.delete(0, resumeMessage.length());
                             resumeMessage.append(e.getMessage());
                         } else {
                             if (resumeMessage.length() == 0) {
-                                resumeMessage
-                                        .append("Неправильная пара логин/пароль");
+                                resumeMessage.append("Неправильная пара логин/пароль");
                             }
                         }
 
@@ -552,9 +510,7 @@ public final class AuthManager {
                 errlog.append("Неправильная пара логин/пароль");
             }
             lockouts.loginFail(login);
-            throw EAuthServerLogic
-                    .create(String.format(PROVIDER_ERROR, errlog
-                            + "\nРезюме: " + resumeMessage));
+            throw EAuthServerLogic.create(String.format(PROVIDER_ERROR, errlog + "\nРезюме: " + resumeMessage));
         }
 
 
@@ -563,8 +519,7 @@ public final class AuthManager {
     }
 
 
-    public void getUserList(final String providerId, final String groupProviders, String token,
-                            final String ip, final PrintWriter pw) throws EAuthServerLogic {
+    public void getUserList(final String providerId, final String groupProviders, String token, final String ip, final PrintWriter pw) throws EAuthServerLogic {
 
         if ((getuserlistToken == null) || (token == null) || (!getuserlistToken.equals(token))) {
             throw EAuthServerLogic.create("Permission denied.");
@@ -607,8 +562,7 @@ public final class AuthManager {
             errlog.append("/getuserlist.\n");
 
             for (AbstractLoginProvider curProvider : loginProviders) {
-                if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders))
-                        || (groupProviders.equals(curProvider.getGroupProviders()))) {
+                if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(curProvider.getGroupProviders()))) {
 
                     try {
                         ProviderContextHolder ch = curProvider.newContextHolder();
@@ -620,24 +574,21 @@ public final class AuthManager {
                         }
                     } catch (EAuthServerLogic e) {
                         String s = String.format(PROVIDER_ERROR, e.getMessage());
-                        errlog.append(curProvider.getConnectionUrl() + ": "
-                                + s + "\n");
+                        errlog.append(curProvider.getConnectionUrl() + ": " + s + "\n");
                     }
 
                 }
             }
 
             if (!res) {
-                throw EAuthServerLogic
-                        .create(errlog.toString());
+                throw EAuthServerLogic.create(errlog.toString());
             }
 
         }
 
     }
 
-    private String getMessageUserIslockedOutForTooManyUnsuccessfulLoginAttempts(final String sesid,
-                                                                                final String login, final String ip) {
+    private String getMessageUserIslockedOutForTooManyUnsuccessfulLoginAttempts(final String sesid, final String login, final String ip) {
         if ((procPostProcessProvider == null) && (procPostProcessExtProvider == null)) {
             String s = String.format(USER_IS_LOCKED_OUT_FOR_TOO_MANY_UNSUCCESSFUL_LOGIN_ATTEMPTS, login);
             if (showTimeToUnlockUser) {
@@ -648,10 +599,7 @@ public final class AuthManager {
             if (procPostProcessExtProvider != null) {
                 PostProcessResult ppr = null;
                 try {
-                    ppr = procPostProcessExtProvider.callProcPostProcess(null,
-                            sesid, login, false, null, ip,
-                            true, LockoutManager.getLockoutManager().getAttemptsCount(login),
-                            LockoutManager.getLockoutManager().getTimeToUnlock(login));
+                    ppr = procPostProcessExtProvider.callProcPostProcess(null, sesid, login, false, null, ip, true, LockoutManager.getLockoutManager().getAttemptsCount(login), LockoutManager.getLockoutManager().getTimeToUnlock(login));
                 } catch (Exception e) {
                     return e.getMessage();
                 }
@@ -660,10 +608,7 @@ public final class AuthManager {
             if (procPostProcessProvider != null) {
                 PostProcessResult ppr = null;
                 try {
-                    ppr = procPostProcessProvider.callProcPostProcess(null,
-                            sesid, login, false, null, ip,
-                            true, LockoutManager.getLockoutManager().getAttemptsCount(login),
-                            LockoutManager.getLockoutManager().getTimeToUnlock(login));
+                    ppr = procPostProcessProvider.callProcPostProcess(null, sesid, login, false, null, ip, true, LockoutManager.getLockoutManager().getAttemptsCount(login), LockoutManager.getLockoutManager().getTimeToUnlock(login));
                 } catch (Exception e) {
                     return e.getMessage();
                 }
@@ -688,9 +633,7 @@ public final class AuthManager {
      * @throws EAuthServerLogic В случае если пара «логин-пароль» не верна или при
      *                          взаимодействии с LDAP произошла другая ошибка
      */
-    public String login(final String sesid, final String groupProviders,
-                        final String login, final String password, final String ip)
-            throws EAuthServerLogic {
+    public String login(final String sesid, final String groupProviders, final String login, final String password, final String ip) throws EAuthServerLogic {
 
         logout(sesid);
 
@@ -705,13 +648,10 @@ public final class AuthManager {
         final ArrayList<String> userInfo = new ArrayList<String>();
         final StringBuffer errlog = new StringBuffer();
         final StringBuffer resumeMessage = new StringBuffer();
-        final Vector<AbstractLoginProvider> result = new Vector<AbstractLoginProvider>(
-                1);
-        final Vector<AbstractLoginProvider> taskPool = new Vector<AbstractLoginProvider>(
-                loginProviders.size());
+        final Vector<AbstractLoginProvider> result = new Vector<AbstractLoginProvider>(1);
+        final Vector<AbstractLoginProvider> taskPool = new Vector<AbstractLoginProvider>(loginProviders.size());
         for (AbstractLoginProvider p : loginProviders)
-            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders))
-                    || (groupProviders.equals(p.getGroupProviders())))
+            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(p.getGroupProviders())))
                 taskPool.add(p);
 
         /**
@@ -737,8 +677,7 @@ public final class AuthManager {
         class LoginThread extends Thread {
             private AbstractLoginProvider getNext() {
                 synchronized (taskPool) {
-                    return taskPool.size() == 0 ? null : taskPool
-                            .remove(taskPool.size() - 1);
+                    return taskPool.size() == 0 ? null : taskPool.remove(taskPool.size() - 1);
                 }
 
             }
@@ -748,8 +687,7 @@ public final class AuthManager {
                 AbstractLoginProvider curProvider = getNext();
                 while (curProvider != null) {
                     try {
-                        ProviderContextHolder ch = curProvider
-                                .newContextHolder();
+                        ProviderContextHolder ch = curProvider.newContextHolder();
                         try {
 
                             StringWriter sw = new StringWriter();
@@ -757,25 +695,17 @@ public final class AuthManager {
 
                             curProvider.connect(sesid, login, password, ip, ch, pw);
 
-                            if (
-                                    (!"SQLLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName()))
-                                            && (!"SQLExtLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName()))
-                                            && (!"IASBPLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName()))
-                            ) {
+                            if ((!"SQLLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName())) && (!"IASBPLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName()))) {
                                 curProvider.getUserInfoByName(ch, login, pw);
                                 if ("".equals(sw.toString().trim())) {
-                                    throw EAuthServerLogic
-                                            .create(LOGIN_TO_PROVIDER_SUCCESSFUL_BUT_USER_NOT_FOUND_IN_BASE);
+                                    throw EAuthServerLogic.create(LOGIN_TO_PROVIDER_SUCCESSFUL_BUT_USER_NOT_FOUND_IN_BASE);
                                 }
                             }
 
                             userInfo.add(sw.toString().trim());
 
-                            if ("IASBPLoginProvider"
-                                    .equalsIgnoreCase(curProvider.getClass()
-                                            .getSimpleName())) {
-                                userInfo.add(((IASBPLoginProvider) curProvider)
-                                        .getDjangoauthid());
+                            if ("IASBPLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName())) {
+                                userInfo.add(((IASBPLoginProvider) curProvider).getDjangoauthid());
                             }
 
                         } finally {
@@ -786,16 +716,14 @@ public final class AuthManager {
                         result.add(curProvider);
                         break;
                     } catch (EAuthServerLogic e) {
-                        errlog.append(curProvider.getConnectionUrl() + ": "
-                                + e.getMessage() + "\n");
+                        errlog.append(curProvider.getConnectionUrl() + ": " + e.getMessage() + "\n");
 
                         if (e.getBadLoginType() == BadLoginType.BAD_PROC_CHECK_USER) {
                             resumeMessage.delete(0, resumeMessage.length());
                             resumeMessage.append(e.getMessage());
                         } else {
                             if (resumeMessage.length() == 0) {
-                                resumeMessage
-                                        .append("Неправильная пара логин/пароль");
+                                resumeMessage.append("Неправильная пара логин/пароль");
                             }
                         }
 
@@ -833,22 +761,18 @@ public final class AuthManager {
                 resumeMessage.append(". " + s);
             }
 
-            throw EAuthServerLogic
-                    .create(String.format(PROVIDER_ERROR, errlog
-                            + "\nРезюме: " + resumeMessage));
+            throw EAuthServerLogic.create(String.format(PROVIDER_ERROR, errlog + "\nРезюме: " + resumeMessage));
         }
 
         SecureRandom r = new SecureRandom();
-        String authid = String.format("%016x", r.nextLong())
-                + String.format("%016x", r.nextLong());
+        String authid = String.format("%016x", r.nextLong()) + String.format("%016x", r.nextLong());
 
         String djangoauthid = null;
         if (userInfo.size() > 1) {
             djangoauthid = userInfo.get(1);
         }
 
-        authsessions.put(authid, new AuthSession(login, password,
-                result.get(0), authid, userInfo.get(0), ip, djangoauthid));
+        authsessions.put(authid, new AuthSession(login, password, result.get(0), authid, userInfo.get(0), ip, djangoauthid));
         appsessions.put(sesid, authid);
 
         lockouts.success(login);
@@ -869,12 +793,8 @@ public final class AuthManager {
         }
 
         AuthSession as = authsessions.get(authid);
-        if (!(sesid.contains("django"))
-                && (as.config != null)
-                && "IASBPLoginProvider".equalsIgnoreCase(as.config.getClass()
-                .getSimpleName())) {
-            ((IASBPLoginProvider) as.config).disconnect(as.name,
-                    as.djangoauthid);
+        if (!(sesid.contains("django")) && (as.config != null) && "IASBPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) {
+            ((IASBPLoginProvider) as.config).disconnect(as.name, as.djangoauthid);
         }
 
         ArrayList<String> apps = new ArrayList<String>();
@@ -897,14 +817,10 @@ public final class AuthManager {
 
         ArrayList<String> auths = new ArrayList<String>();
         for (AuthSession as : authsessions.values()) {
-            if (as.lastAuthenticated + MILLISECSINMINUTE * sessionTimeout < System
-                    .currentTimeMillis()) {
+            if (as.lastAuthenticated + MILLISECSINMINUTE * sessionTimeout < System.currentTimeMillis()) {
 
-                if ((as.config != null)
-                        && "IASBPLoginProvider".equalsIgnoreCase(as.config
-                        .getClass().getSimpleName())) {
-                    ((IASBPLoginProvider) as.config).disconnect(as.name,
-                            as.djangoauthid);
+                if ((as.config != null) && "IASBPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) {
+                    ((IASBPLoginProvider) as.config).disconnect(as.name, as.djangoauthid);
                 }
 
                 auths.add(as.authid);
@@ -941,8 +857,7 @@ public final class AuthManager {
      * @param newId Новый идентификатор сессии приложения.
      * @throws EAuthServerLogic Если сессия была не идентифицирована.
      */
-    public void changeAppSessionId(String oldId, String newId)
-            throws EAuthServerLogic {
+    public void changeAppSessionId(String oldId, String newId) throws EAuthServerLogic {
         String authid = appsessions.get(oldId);
         if (authid != null) {
             appsessions.remove(oldId);
@@ -963,8 +878,7 @@ public final class AuthManager {
      *              формате XML
      * @throws EAuthServerLogic Если сессия с идентификатором sesid не аутентифицирована
      */
-    public void isAuthenticated(String sesid, String ip, PrintWriter pw)
-            throws EAuthServerLogic {
+    public void isAuthenticated(String sesid, String ip, PrintWriter pw) throws EAuthServerLogic {
 
         String authid = appsessions.get(sesid);
         if (authid == null) {
@@ -986,19 +900,12 @@ public final class AuthManager {
             as.lastAuthenticated = System.currentTimeMillis();
         }
 
-        if (as.getUserInfo().trim().isEmpty()
-                && (as.config != null)
-                && (!"IASBPLoginProvider".equalsIgnoreCase(as.config.getClass()
-                .getSimpleName()))) {
+        if (as.getUserInfo().trim().isEmpty() && (as.config != null) && (!"IASBPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))) {
 
             try {
                 ProviderContextHolder context = as.config.newContextHolder();
                 try {
-                    if (
-                            (!"HTTPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))
-                                    && (!"SQLLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))
-                                    && (!"SQLExtLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))
-                    ) {
+                    if ((!"HTTPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) && (!"SQLLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))) {
                         as.config.connect(sesid, as.getName(), as.getPwd(), null, context, null);
                     }
                     as.config.getUserInfoByName(context, as.getName(), pw);
@@ -1006,8 +913,7 @@ public final class AuthManager {
                     context.closeContext();
                 }
             } catch (Exception e) {
-                throw EAuthServerLogic.create(String.format(PROVIDER_ERROR,
-                        e.getMessage()));
+                throw EAuthServerLogic.create(String.format(PROVIDER_ERROR, e.getMessage()));
             }
         } else {
             pw.append(as.getUserInfo());
@@ -1029,8 +935,7 @@ public final class AuthManager {
      * @throws EAuthServerLogic Если сессия с идентификатором sesid не аутентифицирована или
      *                          произошла ошибка при взаимодействии с LDAP
      */
-    public void checkName(String sesid, String name, PrintWriter pw)
-            throws EAuthServerLogic {
+    public void checkName(String sesid, String name, PrintWriter pw) throws EAuthServerLogic {
         String authid = appsessions.get(sesid);
         if (authid == null) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid));
@@ -1046,11 +951,7 @@ public final class AuthManager {
         try {
             ProviderContextHolder context = as.config.newContextHolder();
             try {
-                if (
-                        (!"HTTPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))
-                                && (!"SQLLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))
-                                && (!"SQLExtLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))
-                ) {
+                if ((!"HTTPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) && (!"SQLLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))) {
                     as.config.connect(sesid, as.getName(), as.getPwd(), null, context, null);
                 }
                 as.config.getUserInfoByName(context, name, pw);
@@ -1058,8 +959,7 @@ public final class AuthManager {
                 context.closeContext();
             }
         } catch (Exception e) {
-            throw EAuthServerLogic.create(String.format(PROVIDER_ERROR,
-                    e.getMessage()));
+            throw EAuthServerLogic.create(String.format(PROVIDER_ERROR, e.getMessage()));
         }
     }
 
@@ -1080,13 +980,11 @@ public final class AuthManager {
      *                          и/или старый пароль введён неверно и/или новый пароль не
      *                          соответсвует политикам безопасности
      */
-    public String changeOwnPwd(String sesid, String oldpwd, String newpwd)
-            throws EAuthServerLogic {
+    public String changeOwnPwd(String sesid, String oldpwd, String newpwd) throws EAuthServerLogic {
         String name = null;
 
         String authid = appsessions.get(sesid);
-        if (authid == null)
-            throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid));
+        if (authid == null) throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid));
 
         AuthSession as = authsessions.get(authid);
         if (as == null) {
@@ -1106,8 +1004,7 @@ public final class AuthManager {
 
             name = as.getName();
         } catch (Exception e) {
-            throw EAuthServerLogic.create(String.format(PROVIDER_ERROR,
-                    e.getMessage()));
+            throw EAuthServerLogic.create(String.format(PROVIDER_ERROR, e.getMessage()));
         }
 
         return name;
@@ -1129,8 +1026,7 @@ public final class AuthManager {
      * @throws EAuthServerLogic Если сессия с идентификатором sesid не аутентифицирована
      *                          и/или попытка изменения пароля не успешна
      */
-    public String changeUserPwd(String sesid, String userName, String newpwd)
-            throws EAuthServerLogic {
+    public String changeUserPwd(String sesid, String userName, String newpwd) throws EAuthServerLogic {
         String name = null;
 
         String authid = appsessions.get(sesid);
@@ -1150,8 +1046,7 @@ public final class AuthManager {
             if ("LDAPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) {
 
                 try {
-                    as.config.connect(sesid, as.getName(), as.getPwd(), null, context,
-                            null);
+                    as.config.connect(sesid, as.getName(), as.getPwd(), null, context, null);
                     as.config.changePwd(context, userName, newpwd);
                 } finally {
                     context.closeContext();
@@ -1222,8 +1117,7 @@ public final class AuthManager {
         try {
             ProviderContextHolder context = as.config.newContextHolder();
             try {
-                as.config.connect(sesid, as.getName(), as.getPwd(), null, context,
-                        null);
+                as.config.connect(sesid, as.getName(), as.getPwd(), null, context, null);
                 as.config.importUsers(context, pw, true);
             } finally {
                 context.closeContext();
@@ -1325,17 +1219,13 @@ public final class AuthManager {
             return;
         }
 
-        List<AuthSession> authUpdate = authsessions.entrySet().stream()
-                .filter(e -> oldLogin.equals(e.getValue().getName()))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
+        List<AuthSession> authUpdate = authsessions.entrySet().stream().filter(e -> oldLogin.equals(e.getValue().getName())).map(Map.Entry::getValue).collect(Collectors.toList());
 
         authUpdate.forEach(as -> {
-                    as.setName(newLogin);
-                    as.setPwd(newPwd);
-                    as.setUserInfo("");
-                }
-        );
+            as.setName(newLogin);
+            as.setPwd(newPwd);
+            as.setUserInfo("");
+        });
     }
 
     public void logoutByUserDelete(String login) {
@@ -1343,10 +1233,7 @@ public final class AuthManager {
             return;
         }
 
-        List<String> authDel = authsessions.entrySet().stream()
-                .filter(e -> login.equals(e.getValue().getName()))
-                .map(e -> e.getKey())
-                .collect(Collectors.toList());
+        List<String> authDel = authsessions.entrySet().stream().filter(e -> login.equals(e.getValue().getName())).map(e -> e.getKey()).collect(Collectors.toList());
 
         appsessions.values().removeAll(authDel);
 
@@ -1366,17 +1253,14 @@ public final class AuthManager {
      * @return authsesid
      * @throws EAuthServerLogic В случае ошибки
      */
-    public String setDjangoAuthId(final String djangosesid,
-                                  final String djangoauthid, final String login, final String name,
-                                  final String sid) throws EAuthServerLogic {
+    public String setDjangoAuthId(final String djangosesid, final String djangoauthid, final String login, final String name, final String sid) throws EAuthServerLogic {
 
         logout(djangosesid);
 
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         try {
-            XMLStreamWriter xw = XMLOutputFactory.newInstance()
-                    .createXMLStreamWriter(pw);
+            XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(pw);
             xw.writeStartDocument("utf-8", "1.0");
             xw.writeEmptyElement("user");
             xw.writeAttribute("login", login);
@@ -1389,26 +1273,21 @@ public final class AuthManager {
         }
 
         SecureRandom r = new SecureRandom();
-        String authid = String.format("%016x", r.nextLong())
-                + String.format("%016x", r.nextLong());
+        String authid = String.format("%016x", r.nextLong()) + String.format("%016x", r.nextLong());
 
         AbstractLoginProvider iasbp = null;
         for (AbstractLoginProvider p : loginProviders) {
-            if ("IASBPLoginProvider".equalsIgnoreCase(p.getClass()
-                    .getSimpleName())) {
+            if ("IASBPLoginProvider".equalsIgnoreCase(p.getClass().getSimpleName())) {
                 iasbp = p;
                 break;
             }
         }
 
-        authsessions.put(authid, new AuthSession(login, null, iasbp, authid, sw
-                .toString().trim(), null, djangoauthid));
+        authsessions.put(authid, new AuthSession(login, null, iasbp, authid, sw.toString().trim(), null, djangoauthid));
         appsessions.put(djangosesid, authid);
 
         if ((iasbp != null) && (iasbp.getLogger() != null)) {
-            iasbp.getLogger().debug(
-                    "Логин пользователя из ИАС БП '" + login
-                            + "' посредством setDjangoAuthId успешен!");
+            iasbp.getLogger().debug("Логин пользователя из ИАС БП '" + login + "' посредством setDjangoAuthId успешен!");
         }
 
         return authid;
@@ -1426,32 +1305,24 @@ public final class AuthManager {
      * @throws EAuthServerLogic Если сессия с идентификатором djangosesid не
      *                          аутентифицирована
      */
-    public void getDjangoAuthId(final String djangosesid,
-                                final String authsesid, final String djangoCallback, PrintWriter pw)
-            throws EAuthServerLogic {
+    public void getDjangoAuthId(final String djangosesid, final String authsesid, final String djangoCallback, PrintWriter pw) throws EAuthServerLogic {
 
         AuthSession as = null;
 
         if (authsesid == null) {
             String authid = appsessions.get(djangosesid);
             if (authid == null) {
-                throw EAuthServerLogic
-                        .create(String.format(SESID_NOT_AUTH, djangosesid)
-                                + " Подробности: authsesid == null и не найден djangosesid.");
+                throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, djangosesid) + " Подробности: authsesid == null и не найден djangosesid.");
             }
 
             as = authsessions.get(authid);
             if (as == null) {
-                throw EAuthServerLogic
-                        .create(String.format(SESID_NOT_AUTH, djangosesid)
-                                + " Подробности: authsesid == null и не найден authid.");
+                throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, djangosesid) + " Подробности: authsesid == null и не найден authid.");
             }
         } else {
             as = authsessions.get(authsesid);
             if (as == null) {
-                throw EAuthServerLogic
-                        .create(String.format(SESID_NOT_AUTH, djangosesid)
-                                + " Подробности: authsesid != null, но не найден AuthSession.");
+                throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, djangosesid) + " Подробности: authsesid != null, но не найден AuthSession.");
             }
 
             if (appsessions.get(djangosesid) == null) {
@@ -1460,8 +1331,7 @@ public final class AuthManager {
 
         }
 
-        pw.append(djangoCallback + "({\"django_auth_id\": \"" + as.djangoauthid
-                + "\"});");
+        pw.append(djangoCallback + "({\"django_auth_id\": \"" + as.djangoauthid + "\"});");
 
     }
 
@@ -1475,8 +1345,7 @@ public final class AuthManager {
      * @param pw       PrintWriter, в который выводится необходимая информация
      * @throws EAuthServerLogic Если возникает ошибка
      */
-    public void loginESIAUser(String sesid, String login, String userInfo, PrintWriter pw)
-            throws EAuthServerLogic {
+    public void loginESIAUser(String sesid, String login, String userInfo, PrintWriter pw) throws EAuthServerLogic {
 
         if (esiaLoginProvider == null) {
             esiaLoginProvider = new ESIALoginProvider();
@@ -1486,12 +1355,10 @@ public final class AuthManager {
         }
 
         SecureRandom r = new SecureRandom();
-        String authid = String.format("%016x", r.nextLong())
-                + String.format("%016x", r.nextLong());
+        String authid = String.format("%016x", r.nextLong()) + String.format("%016x", r.nextLong());
 
 
-        authsessions.put(authid, new AuthSession(login, null, esiaLoginProvider, authid,
-                userInfo, null, null));
+        authsessions.put(authid, new AuthSession(login, null, esiaLoginProvider, authid, userInfo, null, null));
 
         appsessions.put(sesid, authid);
 
@@ -1570,10 +1437,7 @@ public final class AuthManager {
         private String pwd;
         private long lastAuthenticated = System.currentTimeMillis();
 
-        public AuthSession(String name, String pwd,
-                           AbstractLoginProvider config, final String authid,
-                           final String userInfo, final String ip,
-                           final String djangoauthid) {
+        public AuthSession(String name, String pwd, AbstractLoginProvider config, final String authid, final String userInfo, final String ip, final String djangoauthid) {
             this.name = name;
             this.pwd = pwd;
             this.config = config;
@@ -1673,32 +1537,26 @@ public final class AuthManager {
             actions.put("id", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (loginProviders.size() > 0)
-                        loginProviders.getLast().setId(value);
+                    if (loginProviders.size() > 0) loginProviders.getLast().setId(value);
                 }
             });
             actions.put("logging", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (loginProviders.size() > 0)
-                        (loginProviders.getLast()).setupLogger(Boolean
-                                .parseBoolean(value));
+                    if (loginProviders.size() > 0) (loginProviders.getLast()).setupLogger(Boolean.parseBoolean(value));
                 }
             });
             actions.put("servertype", new ParserAction() {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast())
-                                .setServertype(LDAPLoginProvider.ServerType
-                                        .valueOf(value.trim()));
+                        ((LDAPLoginProvider) loginProviders.getLast()).setServertype(LDAPLoginProvider.ServerType.valueOf(value.trim()));
                 }
             });
             actions.put("url", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (loginProviders.size() > 0)
-                        loginProviders.getLast().setConnectionUrl(value);
+                    if (loginProviders.size() > 0) loginProviders.getLast().setConnectionUrl(value);
                 }
             });
 
@@ -1708,11 +1566,9 @@ public final class AuthManager {
                 void characters(String value) {
                     if (loginProviders.size() > 0) {
                         if (loginProviders.getLast() instanceof SQLLoginProvider) {
-                            ((SQLLoginProvider) loginProviders.getLast())
-                                    .setConnectionUsername(value);
+                            ((SQLLoginProvider) loginProviders.getLast()).setConnectionUsername(value);
                         } else {
-                            ((SQLExtLoginProvider) loginProviders.getLast())
-                                    .setConnectionUsername(value);
+                            ((SQLExtLoginProvider) loginProviders.getLast()).setConnectionUsername(value);
                         }
                     }
                 }
@@ -1722,11 +1578,9 @@ public final class AuthManager {
                 void characters(String value) {
                     if (loginProviders.size() > 0) {
                         if (loginProviders.getLast() instanceof SQLLoginProvider) {
-                            ((SQLLoginProvider) loginProviders.getLast())
-                                    .setConnectionPassword(value);
+                            ((SQLLoginProvider) loginProviders.getLast()).setConnectionPassword(value);
                         } else {
-                            ((SQLExtLoginProvider) loginProviders.getLast())
-                                    .setConnectionPassword(value);
+                            ((SQLExtLoginProvider) loginProviders.getLast()).setConnectionPassword(value);
                         }
                     }
                 }
@@ -1736,11 +1590,9 @@ public final class AuthManager {
                 void characters(String value) {
                     if (loginProviders.size() > 0) {
                         if (loginProviders.getLast() instanceof SQLLoginProvider) {
-                            ((SQLLoginProvider) loginProviders.getLast())
-                                    .setTable(value);
+                            ((SQLLoginProvider) loginProviders.getLast()).setTable(value);
                         } else {
-                            ((SQLExtLoginProvider) loginProviders.getLast())
-                                    .setTable(value);
+                            ((SQLExtLoginProvider) loginProviders.getLast()).setTable(value);
                         }
                     }
                 }
@@ -1748,33 +1600,26 @@ public final class AuthManager {
             actions.put("tableattr", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (loginProviders.size() > 0)
-                        ((SQLExtLoginProvider) loginProviders.getLast())
-                                .setTableAttr(value);
+                    if (loginProviders.size() > 0) ((SQLExtLoginProvider) loginProviders.getLast()).setTableAttr(value);
                 }
             });
             actions.put("fieldlogin", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (loginProviders.size() > 0)
-                        ((SQLLoginProvider) loginProviders.getLast())
-                                .setFieldLogin(value);
+                    if (loginProviders.size() > 0) ((SQLLoginProvider) loginProviders.getLast()).setFieldLogin(value);
                 }
             });
             actions.put("fieldpassword", new ParserAction() {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((SQLLoginProvider) loginProviders.getLast())
-                                .setFieldPassword(value);
+                        ((SQLLoginProvider) loginProviders.getLast()).setFieldPassword(value);
                 }
             });
             actions.put("fieldblocked", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (loginProviders.size() > 0)
-                        ((SQLLoginProvider) loginProviders.getLast())
-                                .setFieldBlocked(value);
+                    if (loginProviders.size() > 0) ((SQLLoginProvider) loginProviders.getLast()).setFieldBlocked(value);
                 }
             });
             actions.put("hashalgorithm", new ParserAction() {
@@ -1801,16 +1646,14 @@ public final class AuthManager {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast())
-                                .setSidHashAlgorithm(value);
+                        ((LDAPLoginProvider) loginProviders.getLast()).setSidHashAlgorithm(value);
                 }
             });
             actions.put("sidlocalsecuritysalt", new ParserAction() {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast())
-                                .setSidLocalSecuritySalt(value);
+                        ((LDAPLoginProvider) loginProviders.getLast()).setSidLocalSecuritySalt(value);
                 }
             });
             actions.put("trusteduser", new ParserAction() {
@@ -1848,41 +1691,35 @@ public final class AuthManager {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((HTTPLoginProvider) loginProviders.getLast())
-                                .setValidateUser(value);
+                        ((HTTPLoginProvider) loginProviders.getLast()).setValidateUser(value);
                 }
             });
             actions.put("userinfobyname", new ParserAction() {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((HTTPLoginProvider) loginProviders.getLast())
-                                .setUserInfoByName(value);
+                        ((HTTPLoginProvider) loginProviders.getLast()).setUserInfoByName(value);
                 }
             });
             actions.put("userinfobyid", new ParserAction() {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((HTTPLoginProvider) loginProviders.getLast())
-                                .setUserInfoById(value);
+                        ((HTTPLoginProvider) loginProviders.getLast()).setUserInfoById(value);
                 }
             });
             actions.put("usessl", new ParserAction() {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast())
-                                .setUsessl(Boolean.parseBoolean(value));
+                        ((LDAPLoginProvider) loginProviders.getLast()).setUsessl(Boolean.parseBoolean(value));
                 }
             });
             actions.put("sat", new ParserAction() {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast())
-                                .setSat(LDAPLoginProvider.SecurityAuthenticationType
-                                        .valueOf(value));
+                        ((LDAPLoginProvider) loginProviders.getLast()).setSat(LDAPLoginProvider.SecurityAuthenticationType.valueOf(value));
 
                 }
             });
@@ -1890,26 +1727,21 @@ public final class AuthManager {
             actions.put("domain_name", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast())
-                                .setDomainName(value);
+                    if (loginProviders.size() > 0) ((LDAPLoginProvider) loginProviders.getLast()).setDomainName(value);
                 }
             });
 
             actions.put("group_providers", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (loginProviders.size() > 0)
-                        loginProviders.getLast().setGroupProviders(value);
+                    if (loginProviders.size() > 0) loginProviders.getLast().setGroupProviders(value);
                 }
             });
 
             actions.put("searchbase", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast())
-                                .addSearchBase(value);
+                    if (loginProviders.size() > 0) ((LDAPLoginProvider) loginProviders.getLast()).addSearchBase(value);
                 }
             });
             actions.put("searchreturningattributes", new ParserAction() {
@@ -1917,9 +1749,7 @@ public final class AuthManager {
                 void startElement(Attributes attributes) {
                     for (int i = 0; i < attributes.getLength(); i++) {
                         if (!("".equals(attributes.getValue(i).trim()))) {
-                            (loginProviders.getLast()).addReturningAttributes(
-                                    attributes.getQName(i).trim(), attributes
-                                            .getValue(i).trim());
+                            (loginProviders.getLast()).addReturningAttributes(attributes.getQName(i).trim(), attributes.getValue(i).trim());
                         }
                     }
                 }
@@ -1928,16 +1758,14 @@ public final class AuthManager {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast())
-                                .setSearchFilterForUser(value.trim());
+                        ((LDAPLoginProvider) loginProviders.getLast()).setSearchFilterForUser(value.trim());
                 }
             });
             actions.put("searchfilterforimport", new ParserAction() {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast())
-                                .setSearchFilterForImport(value.trim());
+                        ((LDAPLoginProvider) loginProviders.getLast()).setSearchFilterForImport(value.trim());
                 }
             });
 
@@ -1950,8 +1778,7 @@ public final class AuthManager {
                     }
                     value = attributes.getValue(ATTR_LOAD_FACTOR);
                     if (value != null) {
-                        authsessionsLoadFactor = Integer.valueOf(value)
-                                / (float) 100;
+                        authsessionsLoadFactor = Integer.valueOf(value) / (float) 100;
                     }
                     value = attributes.getValue(ATTR_CONCURRENCY_LEVEL);
                     if (value != null) {
@@ -1968,8 +1795,7 @@ public final class AuthManager {
                     }
                     value = attributes.getValue(ATTR_LOAD_FACTOR);
                     if (value != null) {
-                        appsessionsLoadFactor = Integer.valueOf(value)
-                                / (float) 100;
+                        appsessionsLoadFactor = Integer.valueOf(value) / (float) 100;
                     }
                     value = attributes.getValue(ATTR_CONCURRENCY_LEVEL);
                     if (value != null) {
@@ -2050,32 +1876,26 @@ public final class AuthManager {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((SQLLoginProvider) loginProviders.getLast())
-                                .setAuthMethod(SQLLoginProvider.AuthMethod
-                                        .valueOf(value.trim()));
+                        ((SQLLoginProvider) loginProviders.getLast()).setAuthMethod(SQLLoginProvider.AuthMethod.valueOf(value.trim()));
                 }
             });
 
         }
 
         @Override
-        public void startElement(String uri, String localName, String qName,
-                                 Attributes attributes) throws SAXException {
+        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
             if (CONFIG_NAMESPACE.equals(uri)) {
                 currentAction = actions.get(localName);
-                if (currentAction != null)
-                    currentAction.startElement(attributes);
+                if (currentAction != null) currentAction.startElement(attributes);
             } else {
                 currentAction = null;
             }
         }
 
         @Override
-        public void characters(char[] ch, int start, int length)
-                throws SAXException {
+        public void characters(char[] ch, int start, int length) throws SAXException {
             if (currentAction != null) {
-                currentAction
-                        .characters((new String(ch, start, length)).trim());
+                currentAction.characters((new String(ch, start, length)).trim());
                 currentAction = null;
             }
         }

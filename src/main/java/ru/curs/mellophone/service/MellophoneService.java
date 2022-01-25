@@ -8,13 +8,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 @Service
-public class MellophoneService {
-
-    private final MellophoneProperties properties;
-
-    public MellophoneService(MellophoneProperties properties) {
-        this.properties = properties;
-    }
+public record MellophoneService(MellophoneProperties properties) {
 
     @PostConstruct
     private void postConstruct() {
@@ -22,7 +16,7 @@ public class MellophoneService {
     }
 
     @PreDestroy
-    public void preDestroy() {
+    private void preDestroy() {
         AuthManager.getTheManager().productionModeDestroy();
     }
 
