@@ -219,8 +219,8 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     void connect(String sesid, String login, String password, String ip, ProviderContextHolder context, PrintWriter pw) throws EAuthServerLogic {
 
         if (getLogger() != null) {
-            getLogger().debug("Url='" + getConnectionUrl() + "'");
-            getLogger().debug("login='" + login + "'");
+            getLogger().info("Url='" + getConnectionUrl() + "'");
+            getLogger().info("login='" + login + "'");
         }
 
         checkForPossibleSQLInjection(login, USER_LOGIN + login + "' в '" + getConnectionUrl() + "' не успешен");
@@ -314,7 +314,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         }
 
         if (getLogger() != null) {
-            getLogger().debug(message);
+            getLogger().info(message);
         }
 
         if (!success) {
@@ -451,8 +451,8 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
                            PrintWriter pw) throws EAuthServerLogic {
 
         if (getLogger() != null) {
-            getLogger().debug("Url='" + getConnectionUrl() + "'");
-            getLogger().debug("name='" + name + "'");
+            getLogger().info("Url='" + getConnectionUrl() + "'");
+            getLogger().info("name='" + name + "'");
         }
 
         checkForPossibleSQLInjection(name, USER + name + "' не найден");
@@ -482,7 +482,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             }
 
             if (getLogger() != null) {
-                getLogger().debug(USER + name + "' не найден");
+                getLogger().info(USER + name + "' не найден");
             }
 
         } catch (Exception e) {
@@ -500,8 +500,8 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             throws EAuthServerLogic {
 
         if (getLogger() != null) {
-            getLogger().debug("Url='" + getConnectionUrl() + "'");
-            getLogger().debug("name='" + userName + "'");
+            getLogger().info("Url='" + getConnectionUrl() + "'");
+            getLogger().info("name='" + userName + "'");
         }
 
         checkForPossibleSQLInjection(userName, USER + userName + "' не найден");
@@ -547,7 +547,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     void importUsers(ProviderContextHolder context, PrintWriter pw, boolean needStartDocument)
             throws EAuthServerLogic {
         if (getLogger() != null) {
-            getLogger().debug("Url='" + getConnectionUrl() + "'");
+            getLogger().info("Url='" + getConnectionUrl() + "'");
         }
 
         String sql = "";
@@ -584,7 +584,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
                 xw.writeEndDocument();
                 xw.flush();
                 if (getLogger() != null) {
-                    getLogger().debug("Импорт пользователей успешно завершен");
+                    getLogger().info("Импорт пользователей успешно завершен");
                 }
             }
         } catch (Exception e) {

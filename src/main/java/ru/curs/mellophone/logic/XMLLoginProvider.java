@@ -77,8 +77,8 @@ public final class XMLLoginProvider extends AbstractLoginProvider {
 		};
 
 		if (getLogger() != null) {
-			getLogger().debug("Url='" + getConnectionUrl() + "'");
-			getLogger().debug("login='" + login + "'");
+			getLogger().info("Url='" + getConnectionUrl() + "'");
+			getLogger().info("login='" + login + "'");
 		}
 
 		try {
@@ -114,7 +114,7 @@ public final class XMLLoginProvider extends AbstractLoginProvider {
 		}
 
 		if (getLogger() != null) {
-			getLogger().debug(
+			getLogger().info(
 					"Логин пользователя '" + login + "' в '"
 							+ getConnectionUrl() + "' успешен!");
 		}
@@ -144,8 +144,8 @@ public final class XMLLoginProvider extends AbstractLoginProvider {
 			final PrintWriter pw) throws EAuthServerLogic {
 
 		if (getLogger() != null) {
-			getLogger().debug("Url='" + getConnectionUrl() + "'");
-			getLogger().debug("name='" + name + "'");
+			getLogger().info("Url='" + getConnectionUrl() + "'");
+			getLogger().info("name='" + name + "'");
 		}
 
 		final XMLStreamWriter xw;
@@ -163,7 +163,7 @@ public final class XMLLoginProvider extends AbstractLoginProvider {
 				if (USER.equals(localName) && name.equalsIgnoreCase(atts.getValue(LOGIN))) {
 					try {
 						if (getLogger() != null) {
-							getLogger().debug(
+							getLogger().info(
 									"Пользователь '" + name + "' найден");
 						}
 
@@ -203,7 +203,7 @@ public final class XMLLoginProvider extends AbstractLoginProvider {
 			throws EAuthServerLogic {
 
 		if (getLogger() != null) {
-			getLogger().debug("Url='" + getConnectionUrl() + "'");
+			getLogger().info("Url='" + getConnectionUrl() + "'");
 		}
 
 		final XMLStreamWriter xw;
@@ -249,7 +249,7 @@ public final class XMLLoginProvider extends AbstractLoginProvider {
 			xw.flush();
 
 			if (getLogger() != null) {
-				getLogger().debug("Импорт пользователей успешно завершен");
+				getLogger().info("Импорт пользователей успешно завершен");
 			}
 
 		} catch (Exception e) {

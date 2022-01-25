@@ -77,8 +77,8 @@ final class HTTPLoginProvider extends AbstractLoginProvider {
 			throws EAuthServerLogic {
 
 		if (getLogger() != null) {
-			getLogger().debug("ValidateUserUrl='" + getValidateUserUrl() + "'");
-			getLogger().debug("login='" + login + "'");
+			getLogger().info("ValidateUserUrl='" + getValidateUserUrl() + "'");
+			getLogger().info("login='" + login + "'");
 		}
 
 		HttpURLConnection c = null;
@@ -123,11 +123,11 @@ final class HTTPLoginProvider extends AbstractLoginProvider {
 				}
 
 				if (getLogger() != null) {
-					getLogger().debug("responseCode='" + responseCode + "'");
-					getLogger().debug(
+					getLogger().info("responseCode='" + responseCode + "'");
+					getLogger().info(
 							"responseMessage='" + responseMessage + "'");
-					getLogger().debug("errorStream='" + errorStream + "'");
-					getLogger().debug("inputStream='" + inputStream + "'");
+					getLogger().info("errorStream='" + errorStream + "'");
+					getLogger().info("inputStream='" + inputStream + "'");
 				}
 
 				if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -157,7 +157,7 @@ final class HTTPLoginProvider extends AbstractLoginProvider {
 			}
 
 			if (getLogger() != null) {
-				getLogger().debug(message);
+				getLogger().info(message);
 			}
 
 			if (!success) {
@@ -234,7 +234,7 @@ final class HTTPLoginProvider extends AbstractLoginProvider {
 						URLEncoder.encode(name, "UTF-8"));
 
 				if (getLogger() != null) {
-					getLogger().debug("userInfoUrl='" + userInfoUrl + "'");
+					getLogger().info("userInfoUrl='" + userInfoUrl + "'");
 				}
 
 				URL server = new URL(userInfoUrl);
@@ -260,11 +260,11 @@ final class HTTPLoginProvider extends AbstractLoginProvider {
 				}
 
 				if (getLogger() != null) {
-					getLogger().debug("responseCode='" + responseCode + "'");
-					getLogger().debug(
+					getLogger().info("responseCode='" + responseCode + "'");
+					getLogger().info(
 							"responseMessage='" + responseMessage + "'");
-					getLogger().debug("errorStream='" + errorStream + "'");
-					getLogger().debug("inputStream='" + inputStream + "'");
+					getLogger().info("errorStream='" + errorStream + "'");
+					getLogger().info("inputStream='" + inputStream + "'");
 				}
 
 				if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -285,7 +285,7 @@ final class HTTPLoginProvider extends AbstractLoginProvider {
 			}
 
 			if (getLogger() != null) {
-				getLogger().debug(message);
+				getLogger().info(message);
 			}
 
 		} finally {

@@ -375,9 +375,9 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 					.format(searchFilterForUser, searchName);
 
 			if (getLogger() != null) {
-				getLogger().debug("Url='" + getConnectionUrl() + "'");
-				getLogger().debug("searchName='" + name + "'");
-				getLogger().debug("searchFilter='" + searchFilter + "'");
+				getLogger().info("Url='" + getConnectionUrl() + "'");
+				getLogger().info("searchName='" + name + "'");
+				getLogger().info("searchFilter='" + searchFilter + "'");
 			}
 
 			SearchControls ldapSearchCtrls = new SearchControls();
@@ -389,7 +389,7 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 			for (String sSearchBase : searchBases) {
 
 				if (getLogger() != null) {
-					getLogger().debug("sSearchBase='" + sSearchBase + "'");
+					getLogger().info("sSearchBase='" + sSearchBase + "'");
 				}
 
 				searchResults = ctx.search(sSearchBase, searchFilter,
@@ -398,7 +398,7 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 					name = searchResults.next().getNameInNamespace();
 
 					if (getLogger() != null) {
-						getLogger().debug(
+						getLogger().info(
 								"Пользователь '" + searchName
 										+ "' найден в sSearchBase='"
 										+ sSearchBase + "'. DN = '" + name
@@ -421,7 +421,7 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 		} catch (NamingException e) {
 
 			if (getLogger() != null) {
-				getLogger().debug("Url='" + getConnectionUrl() + "'");
+				getLogger().info("Url='" + getConnectionUrl() + "'");
 				getLogger().error(String.format(e.getMessage()));
 			}
 
@@ -531,10 +531,10 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 			String sSecurityCredentials, ProviderContextHolder ldapLink)
 			throws LoginException, NamingException {
 		if (getLogger() != null) {
-			getLogger().debug("Url='" + getConnectionUrl() + "'");
+			getLogger().info("Url='" + getConnectionUrl() + "'");
 			getLogger()
 					.debug("sSecurityPrincipal='" + sSecurityPrincipal + "'");
-			getLogger().debug("sat='" + sat.toString() + "'");
+			getLogger().info("sat='" + sat.toString() + "'");
 		}
 
 		if (sat == SecurityAuthenticationType.GSSAPI) {
@@ -553,7 +553,7 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 		}
 
 		if (getLogger() != null) {
-			getLogger().debug(
+			getLogger().info(
 					"Логин пользователя '" + sSecurityPrincipal + "' в '"
 							+ getConnectionUrl() + "' успешен!");
 		}
@@ -570,9 +570,9 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 		String searchFilter = String.format(searchFilterForUser, searchName);
 
 		if (getLogger() != null) {
-			getLogger().debug("Url='" + getConnectionUrl() + "'");
-			getLogger().debug("searchName='" + name + "'");
-			getLogger().debug("searchFilter='" + searchFilter + "'");
+			getLogger().info("Url='" + getConnectionUrl() + "'");
+			getLogger().info("searchName='" + name + "'");
+			getLogger().info("searchFilter='" + searchFilter + "'");
 		}
 
 		SearchControls ldapSearchCtrls = new SearchControls();
@@ -584,7 +584,7 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 			for (String sSearchBase : searchBases) {
 
 				if (getLogger() != null) {
-					getLogger().debug("sSearchBase='" + sSearchBase + "'");
+					getLogger().info("sSearchBase='" + sSearchBase + "'");
 				}
 
 				searchResults = ((LDAPLink) ldapLink).ctx.search(sSearchBase,
@@ -592,7 +592,7 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 				if (searchResults.hasMoreElements()) {
 
 					if (getLogger() != null) {
-						getLogger().debug(
+						getLogger().info(
 								"Пользователь '" + searchName
 										+ "' найден в sSearchBase='"
 										+ sSearchBase + "'");
@@ -699,8 +699,8 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 		String searchFilter = searchFilterForImport;
 
 		if (getLogger() != null) {
-			getLogger().debug("Url='" + getConnectionUrl() + "'");
-			getLogger().debug("searchFilter='" + searchFilter + "'");
+			getLogger().info("Url='" + getConnectionUrl() + "'");
+			getLogger().info("searchFilter='" + searchFilter + "'");
 		}
 
 		SearchControls ldapSearchCtrls = new SearchControls();
@@ -720,7 +720,7 @@ final class LDAPLoginProvider extends AbstractLoginProvider {
 			for (String sSearchBase : searchBases) {
 
 				if (getLogger() != null) {
-					getLogger().debug("sSearchBase='" + sSearchBase + "'");
+					getLogger().info("sSearchBase='" + sSearchBase + "'");
 				}
 
 				searchResults = ((LDAPLink) ldapLink).ctx.search(sSearchBase,

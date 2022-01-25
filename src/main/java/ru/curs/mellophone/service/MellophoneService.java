@@ -24,7 +24,7 @@ public record MellophoneService(MellophoneProperties properties) {
 
 
         //AuthManager.login(sesid, gp, login, pwd, ip);
-        AuthManager.getTheManager().login("123", "all", "user1", "2222__", null);
+        AuthManager.getTheManager().login("123", "all", "user1", "2222", null);
 
         return "Hello login44!";
 

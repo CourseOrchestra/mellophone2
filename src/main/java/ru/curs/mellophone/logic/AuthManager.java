@@ -193,8 +193,6 @@ public final class AuthManager {
             LOGGER = LoggerFactory.getLogger(AuthManager.class);
 
 
-            LOGGER.error("dddddddddddddddd22");
-
 
             // Читаем все настройки из XML...
             ConfigParser p = new ConfigParser();
@@ -1287,7 +1285,7 @@ public final class AuthManager {
         appsessions.put(djangosesid, authid);
 
         if ((iasbp != null) && (iasbp.getLogger() != null)) {
-            iasbp.getLogger().debug("Логин пользователя из ИАС БП '" + login + "' посредством setDjangoAuthId успешен!");
+            iasbp.getLogger().info("Логин пользователя из ИАС БП '" + login + "' посредством setDjangoAuthId успешен!");
         }
 
         return authid;
