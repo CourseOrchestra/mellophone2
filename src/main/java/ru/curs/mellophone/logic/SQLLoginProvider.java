@@ -19,6 +19,7 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -47,7 +48,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     // private final Queue<Connection> pool = new LinkedList<Connection>();
 
     private final Queue<Connection> pool = new ConcurrentLinkedDeque<Connection>();
-
+    private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
     private String connectionUsername;
     private String connectionPassword;
     private String table;
@@ -57,18 +58,93 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     private String hashAlgorithm = "SHA-256";
     private String localSecuritySalt = "";
     private String procPostProcess = null;
-
-    private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
-
     private AuthMethod authMethod = AuthMethod.CHECK;
 
     /**
-     * Тип метода аутентификации.
+     * Возвращает тип SQL сервера.
      */
-    enum AuthMethod {
-        CHECK, CONNECT
+    private static SQLServerType getSQLServerType(String url) {
+        final String mssql = "sqlserver";
+        final String postgresql = "postgresql";
+        final String oracle = "oracle";
+        final String firebird = "firebird";
+
+        SQLServerType st = null;
+        if (url.indexOf(mssql) > -1) {
+            st = SQLServerType.MSSQL;
+        } else {
+            if (url.indexOf(postgresql) > -1) {
+                st = SQLServerType.POSTGRESQL;
+            } else {
+                if (url.indexOf(oracle) > -1) {
+                    st = SQLServerType.ORACLE;
+                } else {
+                    if (url.indexOf(firebird) > -1) {
+                        st = SQLServerType.FIREBIRD;
+                    }
+                }
+            }
+        }
+
+        return st;
     }
 
+    private static Driver registerDriver(String url) throws SQLException {
+        Driver result = null;
+        if (getSQLServerType(url) == SQLServerType.MSSQL) {
+            try {
+                result = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+                DriverManager.registerDriver(result);
+            } catch (Exception e) {
+                throw new SQLException(e);
+            }
+        }
+        if (getSQLServerType(url) == SQLServerType.POSTGRESQL) {
+            try {
+                result = (Driver) Class.forName("org.postgresql.Driver").newInstance();
+                DriverManager.registerDriver(result);
+            } catch (Exception e) {
+                throw new SQLException(e);
+            }
+        }
+        if (getSQLServerType(url) == SQLServerType.ORACLE) {
+            try {
+                result = (Driver) Class.forName("oracle.jdbc.driver.OracleDriver").newInstance();
+                DriverManager.registerDriver(result);
+            } catch (Exception e) {
+                throw new SQLException(e);
+            }
+        }
+        if (getSQLServerType(url) == SQLServerType.FIREBIRD) {
+            try {
+                result = (Driver) Class.forName("org.firebirdsql.jdbc.FBDriver").newInstance();
+                DriverManager.registerDriver(result);
+            } catch (Exception e) {
+                throw new SQLException(e);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Дерегистрирует драйвера работы с БД.
+     */
+    public static Driver unregisterDrivers() {
+        Driver result = null;
+        while (DriverManager.getDrivers().hasMoreElements()) {
+            try {
+                result = DriverManager.getDrivers().nextElement();
+                DriverManager.deregisterDriver(result);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    private static void checkForPossibleSQLInjection(String sql, String errMsg) throws EAuthServerLogic {
+        if (sql.indexOf(" ") > -1) throw EAuthServerLogic.create(errMsg);
+    }
 
     @Override
     void setupLogger(boolean isLogging) {
@@ -123,101 +199,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         this.authMethod = authMethod;
     }
 
-
-    /**
-     * Тип SQL сервера.
-     */
-    private enum SQLServerType {
-        MSSQL, POSTGRESQL, ORACLE, FIREBIRD
-    }
-
-    /**
-     * Возвращает тип SQL сервера.
-     */
-    private static SQLServerType getSQLServerType(String url) {
-        final String mssql = "sqlserver";
-        final String postgresql = "postgresql";
-        final String oracle = "oracle";
-        final String firebird = "firebird";
-
-        SQLServerType st = null;
-        if (url.indexOf(mssql) > -1) {
-            st = SQLServerType.MSSQL;
-        } else {
-            if (url.indexOf(postgresql) > -1) {
-                st = SQLServerType.POSTGRESQL;
-            } else {
-                if (url.indexOf(oracle) > -1) {
-                    st = SQLServerType.ORACLE;
-                } else {
-                    if (url.indexOf(firebird) > -1) {
-                        st = SQLServerType.FIREBIRD;
-                    }
-                }
-            }
-        }
-
-        return st;
-    }
-
-    private static Driver registerDriver(String url) throws SQLException {
-        Driver result = null;
-        if (getSQLServerType(url) == SQLServerType.MSSQL) {
-            try {
-                result = (Driver) Class.forName(
-                        "com.microsoft.sqlserver.jdbc.SQLServerDriver")
-                        .newInstance();
-                DriverManager.registerDriver(result);
-            } catch (Exception e) {
-                throw new SQLException(e);
-            }
-        }
-        if (getSQLServerType(url) == SQLServerType.POSTGRESQL) {
-            try {
-                result = (Driver) Class.forName("org.postgresql.Driver")
-                        .newInstance();
-                DriverManager.registerDriver(result);
-            } catch (Exception e) {
-                throw new SQLException(e);
-            }
-        }
-        if (getSQLServerType(url) == SQLServerType.ORACLE) {
-            try {
-                result = (Driver) Class.forName(
-                        "oracle.jdbc.driver.OracleDriver").newInstance();
-                DriverManager.registerDriver(result);
-            } catch (Exception e) {
-                throw new SQLException(e);
-            }
-        }
-        if (getSQLServerType(url) == SQLServerType.FIREBIRD) {
-            try {
-                result = (Driver) Class.forName(
-                        "org.firebirdsql.jdbc.FBDriver").newInstance();
-                DriverManager.registerDriver(result);
-            } catch (Exception e) {
-                throw new SQLException(e);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Дерегистрирует драйвера работы с БД.
-     */
-    public static Driver unregisterDrivers() {
-        Driver result = null;
-        while (DriverManager.getDrivers().hasMoreElements()) {
-            try {
-                result = DriverManager.getDrivers().nextElement();
-                DriverManager.deregisterDriver(result);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return result;
-    }
-
     private synchronized Connection getConnection() throws SQLException {
         // Сначала пытаемся достать коннекшн из пула
         Connection c = pool.poll();
@@ -233,14 +214,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         }
 
         registerDriver(getConnectionUrl());
-        return DriverManager.getConnection(getConnectionUrl(),
-                connectionUsername, connectionPassword);
-    }
-
-    private static void checkForPossibleSQLInjection(String sql, String errMsg)
-            throws EAuthServerLogic {
-        if (sql.indexOf(" ") > -1)
-            throw EAuthServerLogic.create(errMsg);
+        return DriverManager.getConnection(getConnectionUrl(), connectionUsername, connectionPassword);
     }
 
     @Override
@@ -251,8 +225,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             getLogger().info("login='" + login + "'");
         }
 
-        checkForPossibleSQLInjection(login, USER_LOGIN + login + "' в '"
-                + getConnectionUrl() + "' не успешен");
+        checkForPossibleSQLInjection(login, USER_LOGIN + login + "' в '" + getConnectionUrl() + "' не успешен");
 
         boolean success = false;
         String message = "";
@@ -263,8 +236,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
             if (authMethod == AuthMethod.CONNECT) {
                 registerDriver(getConnectionUrl());
-                Connection connAuthMethodCONNECT = DriverManager.getConnection(getConnectionUrl(),
-                        login, password);
+                Connection connAuthMethodCONNECT = DriverManager.getConnection(getConnectionUrl(), login, password);
                 connAuthMethodCONNECT.close();
             }
 
@@ -276,28 +248,21 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
                 switch (authMethod) {
                     case CHECK:
-                        sql = String.format(
-                                "SELECT \"%s\", %s FROM \"%s\" WHERE \"%s\" = ?",
-                                fieldPassword, getSelectFields(), table, fieldLogin);
+                        sql = String.format("SELECT \"%s\", %s FROM \"%s\" WHERE \"%s\" = ?", fieldPassword, getSelectFields(), table, fieldLogin);
                         break;
                     case CONNECT:
-                        sql = String.format(
-                                "SELECT %s FROM \"%s\" WHERE \"%s\" = ?",
-                                getSelectFields(), table, fieldLogin);
+                        sql = String.format("SELECT %s FROM \"%s\" WHERE \"%s\" = ?", getSelectFields(), table, fieldLogin);
                         break;
                     default:
                         break;
                 }
 
             } else {
-                sql = String.format(
-                        "SELECT \"%s\", %s FROM \"%s\" WHERE lower(\"%s\") = ?",
-                        fieldPassword, getSelectFields(), table, fieldLogin);
+                sql = String.format("SELECT \"%s\", %s FROM \"%s\" WHERE lower(\"%s\") = ?", fieldPassword, getSelectFields(), table, fieldLogin);
             }
 
 
-            PreparedStatement stat = ((SQLLink) context).conn
-                    .prepareStatement(sql);
+            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
 
             if (getSQLServerType(getConnectionUrl()) == SQLServerType.FIREBIRD) {
                 stat.setString(1, login);
@@ -324,8 +289,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
                         switch (authMethod) {
                             case CHECK:
                                 String pwdComplex = rs.getString(fieldPassword);
-                                success = (pwdComplex != null)
-                                        && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
+                                success = (pwdComplex != null) && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
                                 break;
                             case CONNECT:
                                 success = true;
@@ -340,10 +304,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
                         if (procPostProcess != null) {
 
-                            PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn,
-                                    sesid, login, success, sw.toString(), ip,
-                                    false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1,
-                                    LockoutManager.getLockoutTime() * 60);
+                            PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, success, sw.toString(), ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
                             success = success && ppr.isSuccess();
                             message = ppr.getMessage();
 
@@ -366,10 +327,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
                     if (procPostProcess != null) {
 
-                        PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn,
-                                sesid, login, false, null, ip,
-                                false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1,
-                                LockoutManager.getLockoutTime() * 60);
+                        PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, false, null, ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
 
                         message = ppr.getMessage();
 
@@ -379,16 +337,13 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             }
         } catch (Exception e) {
             if (getLogger() != null) {
-                getLogger().error(
-                        String.format(ERROR_SQL_SERVER, getConnectionUrl(),
-                                e.getMessage(), sql));
+                getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
         }
 
         if (!success && message.isEmpty()) {
-            message = USER_LOGIN + login + "' в '" + getConnectionUrl()
-                    + "' не успешен: " + BAD_CREDENTIALS;
+            message = USER_LOGIN + login + "' в '" + getConnectionUrl() + "' не успешен: " + BAD_CREDENTIALS;
         }
 
         if (getLogger() != null) {
@@ -404,25 +359,19 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     }
 
     private void writeReturningAttributes(Writer writer, ResultSet rs) throws XMLStreamException, FactoryConfigurationError, SQLException {
-        String[] attrs = searchReturningAttributes.keySet()
-                .toArray(new String[0]);
-        XMLStreamWriter xw = XMLOutputFactory.newInstance()
-                .createXMLStreamWriter(writer);
+        String[] attrs = searchReturningAttributes.keySet().toArray(new String[0]);
+        XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
 
         xw.writeStartDocument("utf-8", "1.0");
         xw.writeEmptyElement("user");
         for (String attr : attrs) {
-            writeXMLAttr(xw, attr,
-                    rs.getString(searchReturningAttributes
-                            .get(attr)));
+            writeXMLAttr(xw, attr, rs.getString(searchReturningAttributes.get(attr)));
         }
         xw.writeEndDocument();
         xw.flush();
     }
 
-    public PostProcessResult callProcPostProcess(Connection conn, String sesid, String login,
-                                                 boolean isauth, String attributes, String ip,
-                                                 boolean islocked, int attemptsCount, long timeToUnlock) throws SQLException {
+    public PostProcessResult callProcPostProcess(Connection conn, String sesid, String login, boolean isauth, String attributes, String ip, boolean islocked, int attemptsCount, long timeToUnlock) throws SQLException {
 
         if (conn == null) {
             conn = getConnection();
@@ -484,8 +433,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     }
 
     private String getSelectFields() {
-        String[] fields = searchReturningAttributes.values().toArray(
-                new String[0]);
+        String[] fields = searchReturningAttributes.values().toArray(new String[0]);
 
         String s = null;
         for (String field : fields) {
@@ -513,8 +461,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     }
 
     @Override
-    void getUserInfoByName(ProviderContextHolder context, String name,
-                           PrintWriter pw) throws EAuthServerLogic {
+    void getUserInfoByName(ProviderContextHolder context, String name, PrintWriter pw) throws EAuthServerLogic {
 
         if (getLogger() != null) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
@@ -527,26 +474,20 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         try {
             ((SQLLink) context).conn = getConnection();
 
-            sql = String.format("SELECT %s FROM \"%s\" WHERE lower(\"%s\") = ?",
-                    getSelectFields(), table, fieldLogin);
-            PreparedStatement stat = ((SQLLink) context).conn
-                    .prepareStatement(sql);
+            sql = String.format("SELECT %s FROM \"%s\" WHERE lower(\"%s\") = ?", getSelectFields(), table, fieldLogin);
+            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
             stat.setString(1, name.toLowerCase());
 
             boolean hasResult = stat.execute();
             if (hasResult) {
                 ResultSet rs = stat.getResultSet();
-                String[] attrs = searchReturningAttributes.keySet().toArray(
-                        new String[0]);
-                XMLStreamWriter xw = XMLOutputFactory.newInstance()
-                        .createXMLStreamWriter(pw);
+                String[] attrs = searchReturningAttributes.keySet().toArray(new String[0]);
+                XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(pw);
                 if (rs.next()) {
                     xw.writeStartDocument("utf-8", "1.0");
                     xw.writeEmptyElement("user");
                     for (String attr : attrs) {
-                        writeXMLAttr(xw, attr,
-                                rs.getString(searchReturningAttributes
-                                        .get(attr)));
+                        writeXMLAttr(xw, attr, rs.getString(searchReturningAttributes.get(attr)));
                     }
                     xw.writeEndDocument();
                     xw.flush();
@@ -565,17 +506,14 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
         } catch (Exception e) {
             if (getLogger() != null) {
-                getLogger().error(
-                        String.format(ERROR_SQL_SERVER, getConnectionUrl(),
-                                e.getMessage(), sql));
+                getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
         }
     }
 
     @Override
-    void importUsers(ProviderContextHolder context, PrintWriter pw, boolean needStartDocument)
-            throws EAuthServerLogic {
+    void importUsers(ProviderContextHolder context, PrintWriter pw, boolean needStartDocument) throws EAuthServerLogic {
 
         if (getLogger() != null) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
@@ -587,19 +525,15 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
                 ((SQLLink) context).conn = getConnection();
             }
 
-            sql = String.format("SELECT %s FROM \"%s\" ORDER BY \"%s\"",
-                    getSelectFields(), table, fieldLogin);
+            sql = String.format("SELECT %s FROM \"%s\" ORDER BY \"%s\"", getSelectFields(), table, fieldLogin);
 
-            PreparedStatement stat = ((SQLLink) context).conn
-                    .prepareStatement(sql);
+            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
 
             boolean hasResult = stat.execute();
             if (hasResult) {
                 ResultSet rs = stat.getResultSet();
-                String[] attrs = searchReturningAttributes.keySet().toArray(
-                        new String[0]);
-                XMLStreamWriter xw = XMLOutputFactory.newInstance()
-                        .createXMLStreamWriter(pw);
+                String[] attrs = searchReturningAttributes.keySet().toArray(new String[0]);
+                XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(pw);
                 if (needStartDocument) {
                     xw.writeStartDocument("utf-8", "1.0");
                 }
@@ -608,9 +542,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
                 while (rs.next()) {
                     xw.writeEmptyElement("user");
                     for (String attr : attrs) {
-                        writeXMLAttr(xw, attr,
-                                rs.getString(searchReturningAttributes
-                                        .get(attr)));
+                        writeXMLAttr(xw, attr, rs.getString(searchReturningAttributes.get(attr)));
                     }
                 }
                 xw.writeEndDocument();
@@ -621,17 +553,14 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             }
         } catch (Exception e) {
             if (getLogger() != null) {
-                getLogger().error(
-                        String.format(ERROR_SQL_SERVER, getConnectionUrl(),
-                                e.getMessage(), sql));
+                getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
         }
     }
 
     @Override
-    void changePwd(ProviderContextHolder context, String userName, String newpwd)
-            throws EAuthServerLogic {
+    void changePwd(ProviderContextHolder context, String userName, String newpwd) throws EAuthServerLogic {
 
         if (getLogger() != null) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
@@ -644,20 +573,15 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         try {
             ((SQLLink) context).conn = getConnection();
 
-            sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?",
-                    table, fieldPassword, fieldLogin);
+            sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, fieldPassword, fieldLogin);
 
-            PreparedStatement stat = ((SQLLink) context).conn
-                    .prepareStatement(sql);
+            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
 
 
             SecureRandom r = new SecureRandom();
-            String salt = String.format("%016x", r.nextLong())
-                    + String.format("%016x", r.nextLong());
+            String salt = String.format("%016x", r.nextLong()) + String.format("%016x", r.nextLong());
 
-            String password = getHashAlgorithm1(hashAlgorithm) +
-                    PASSWORD_DIVIDER + salt +
-                    PASSWORD_DIVIDER + getHash(newpwd + salt + localSecuritySalt, hashAlgorithm);
+            String password = getHashAlgorithm1(hashAlgorithm) + PASSWORD_DIVIDER + salt + PASSWORD_DIVIDER + getHash(newpwd + salt + localSecuritySalt, hashAlgorithm);
 
 
             stat.setString(1, password);
@@ -667,9 +591,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
         } catch (Exception e) {
             if (getLogger() != null) {
-                getLogger().error(
-                        String.format(ERROR_SQL_SERVER, getConnectionUrl(),
-                                e.getMessage(), sql));
+                getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
         }
@@ -721,13 +643,14 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), iterations, keyLength);
             SecretKey key = skf.generateSecret(spec);
             byte[] hashedBytes = key.getEncoded();
-            String res = "Hex.encodeHexString(hashedBytes)";
+//            String res = "Hex.encodeHexString(hashedBytes)";
+            HexFormat commaFormat = HexFormat.of();
+            String res = commaFormat.formatHex(hashedBytes);
             return res;
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw EAuthServerLogic.create(e);
         }
     }
-
 
     private String getHashAlgorithm1(String input) {
         return input.toLowerCase().replace("-", "");
@@ -739,6 +662,20 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
 
     /**
+     * Тип метода аутентификации.
+     */
+    enum AuthMethod {
+        CHECK, CONNECT
+    }
+
+    /**
+     * Тип SQL сервера.
+     */
+    private enum SQLServerType {
+        MSSQL, POSTGRESQL, ORACLE, FIREBIRD
+    }
+
+    /**
      * Контекст соединения с базой данных.
      */
     private class SQLLink extends ProviderContextHolder {
@@ -747,8 +684,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         @Override
         void closeContext() {
             try {
-                if (conn != null && conn.isValid(1))
-                    pool.add(conn);
+                if (conn != null && conn.isValid(1)) pool.add(conn);
             } catch (SQLException e) {
                 e.printStackTrace();
             }

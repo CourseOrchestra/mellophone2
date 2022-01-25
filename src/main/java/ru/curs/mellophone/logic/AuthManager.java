@@ -193,7 +193,6 @@ public final class AuthManager {
             LOGGER = LoggerFactory.getLogger(AuthManager.class);
 
 
-
             // Читаем все настройки из XML...
             ConfigParser p = new ConfigParser();
             try {

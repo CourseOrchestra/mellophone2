@@ -21,6 +21,7 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -92,9 +93,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         Driver result = null;
         if (getSQLServerType(url) == SQLServerType.MSSQL) {
             try {
-                result = (Driver) Class.forName(
-                                "com.microsoft.sqlserver.jdbc.SQLServerDriver")
-                        .newInstance();
+                result = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
                 DriverManager.registerDriver(result);
             } catch (Exception e) {
                 throw new SQLException(e);
@@ -102,8 +101,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         }
         if (getSQLServerType(url) == SQLServerType.POSTGRESQL) {
             try {
-                result = (Driver) Class.forName("org.postgresql.Driver")
-                        .newInstance();
+                result = (Driver) Class.forName("org.postgresql.Driver").newInstance();
                 DriverManager.registerDriver(result);
             } catch (Exception e) {
                 throw new SQLException(e);
@@ -111,8 +109,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         }
         if (getSQLServerType(url) == SQLServerType.ORACLE) {
             try {
-                result = (Driver) Class.forName(
-                        "oracle.jdbc.driver.OracleDriver").newInstance();
+                result = (Driver) Class.forName("oracle.jdbc.driver.OracleDriver").newInstance();
                 DriverManager.registerDriver(result);
             } catch (Exception e) {
                 throw new SQLException(e);
@@ -137,10 +134,8 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         return result;
     }
 
-    private static void checkForPossibleSQLInjection(String sql, String errMsg)
-            throws EAuthServerLogic {
-        if (sql.indexOf(" ") > -1)
-            throw EAuthServerLogic.create(errMsg);
+    private static void checkForPossibleSQLInjection(String sql, String errMsg) throws EAuthServerLogic {
+        if (sql.indexOf(" ") > -1) throw EAuthServerLogic.create(errMsg);
     }
 
     @Override
@@ -210,8 +205,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         }
 
         registerDriver(getConnectionUrl());
-        return DriverManager.getConnection(getConnectionUrl(),
-                connectionUsername, connectionPassword);
+        return DriverManager.getConnection(getConnectionUrl(), connectionUsername, connectionPassword);
     }
 
 
@@ -255,8 +249,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
                     if (blt != BadLoginType.USER_BLOCKED_PERMANENTLY) {
 
                         String pwdComplex = rs.getString(fieldPassword);
-                        success = (pwdComplex != null)
-                                && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
+                        success = (pwdComplex != null) && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
 
                         StringWriter sw = new StringWriter();
                         writeReturningAttributes(((SQLLink) context).conn, sw, rs);
@@ -266,10 +259,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
                         if (procPostProcess != null) {
 
-                            PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn,
-                                    sesid, login, success, sw.toString(), ip,
-                                    false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1,
-                                    LockoutManager.getLockoutTime() * 60);
+                            PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, success, sw.toString(), ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
                             success = success && ppr.isSuccess();
                             message = ppr.getMessage();
 
@@ -291,10 +281,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
                     if (procPostProcess != null) {
 
-                        PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn,
-                                sesid, login, false, null, ip,
-                                false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1,
-                                LockoutManager.getLockoutTime() * 60);
+                        PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, false, null, ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
 
                         message = ppr.getMessage();
 
@@ -354,9 +341,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         xw.flush();
     }
 
-    public PostProcessResult callProcPostProcess(Connection conn, String sesid, String login,
-                                                 boolean isauth, String attributes, String ip,
-                                                 boolean islocked, int attemptsCount, long timeToUnlock) throws SQLException {
+    public PostProcessResult callProcPostProcess(Connection conn, String sesid, String login, boolean isauth, String attributes, String ip, boolean islocked, int attemptsCount, long timeToUnlock) throws SQLException {
 
         if (conn == null) {
             conn = getConnection();
@@ -418,8 +403,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     }
 
     private String getSelectFields() {
-        String[] fields = searchReturningAttributes.values().toArray(
-                new String[0]);
+        String[] fields = searchReturningAttributes.values().toArray(new String[0]);
 
         String s = null;
         for (String field : fields) {
@@ -447,8 +431,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     }
 
     @Override
-    void getUserInfoByName(ProviderContextHolder context, String name,
-                           PrintWriter pw) throws EAuthServerLogic {
+    void getUserInfoByName(ProviderContextHolder context, String name, PrintWriter pw) throws EAuthServerLogic {
 
         if (getLogger() != null) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
@@ -487,17 +470,14 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
         } catch (Exception e) {
             if (getLogger() != null) {
-                getLogger().error(
-                        String.format(ERROR_SQL_SERVER, getConnectionUrl(),
-                                e.getMessage(), sql));
+                getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
         }
     }
 
     @Override
-    void changePwd(ProviderContextHolder context, String userName, String newpwd)
-            throws EAuthServerLogic {
+    void changePwd(ProviderContextHolder context, String userName, String newpwd) throws EAuthServerLogic {
 
         if (getLogger() != null) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
@@ -510,20 +490,15 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         try {
             ((SQLLink) context).conn = getConnection();
 
-            sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?",
-                    table, fieldPassword, fieldLogin);
+            sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, fieldPassword, fieldLogin);
 
-            PreparedStatement stat = ((SQLLink) context).conn
-                    .prepareStatement(sql);
+            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
 
 
             SecureRandom r = new SecureRandom();
-            String salt = String.format("%016x", r.nextLong())
-                    + String.format("%016x", r.nextLong());
+            String salt = String.format("%016x", r.nextLong()) + String.format("%016x", r.nextLong());
 
-            String password = getHashAlgorithm1(hashAlgorithm) +
-                    PASSWORD_DIVIDER + salt +
-                    PASSWORD_DIVIDER + getHash(newpwd + salt + localSecuritySalt, hashAlgorithm);
+            String password = getHashAlgorithm1(hashAlgorithm) + PASSWORD_DIVIDER + salt + PASSWORD_DIVIDER + getHash(newpwd + salt + localSecuritySalt, hashAlgorithm);
 
 
             stat.setString(1, password);
@@ -533,9 +508,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
         } catch (Exception e) {
             if (getLogger() != null) {
-                getLogger().error(
-                        String.format(ERROR_SQL_SERVER, getConnectionUrl(),
-                                e.getMessage(), sql));
+                getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
         }
@@ -544,8 +517,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
 
     @Override
-    void importUsers(ProviderContextHolder context, PrintWriter pw, boolean needStartDocument)
-            throws EAuthServerLogic {
+    void importUsers(ProviderContextHolder context, PrintWriter pw, boolean needStartDocument) throws EAuthServerLogic {
         if (getLogger() != null) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
         }
@@ -560,8 +532,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             writeXMLAttr(xw, "pid", getId());
 
             ((SQLLink) context).conn = getConnection();
-            sql = String.format("SELECT a.sid, a.login, b.fieldid, b.fieldvalue FROM \"%s\" a LEFT OUTER JOIN \"%s\" b ON a.sid = b.sid ORDER BY a.sid",
-                    table, tableAttr);
+            sql = String.format("SELECT a.sid, a.login, b.fieldid, b.fieldvalue FROM \"%s\" a LEFT OUTER JOIN \"%s\" b ON a.sid = b.sid ORDER BY a.sid", table, tableAttr);
             PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
 
             boolean hasResult = stat.execute();
@@ -576,7 +547,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
                         sid = rs.getString("sid");
                     }
                     if (rs.getString("fieldid") != null) {
-                        writeXMLAttr(xw,   rs.getString("fieldid"), rs.getString("fieldvalue"));
+                        writeXMLAttr(xw, rs.getString("fieldid"), rs.getString("fieldvalue"));
                     }
                 }
                 rs.close();
@@ -641,7 +612,9 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), iterations, keyLength);
             SecretKey key = skf.generateSecret(spec);
             byte[] hashedBytes = key.getEncoded();
-            String res = "Hex.encodeHexString(hashedBytes)";
+            //String res = "Hex.encodeHexString(hashedBytes)";
+            HexFormat commaFormat = HexFormat.of();
+            String res = commaFormat.formatHex(hashedBytes);
             return res;
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw EAuthServerLogic.create(e);
@@ -662,8 +635,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             Map<String, String> out = new HashMap<String, String>();
 
             @Override
-            public void startElement(String uri, String localName, String qName,
-                                     Attributes attributes) throws SAXException {
+            public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
                 for (int i = 0; i < attributes.getLength(); i++) {
                     out.put(attributes.getQName(i), attributes.getValue(i));
                 }
@@ -844,8 +816,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             }
 
             if (attrs.size() > 0) {
-                sql = "INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)" +
-                        " ON CONFLICT (sid, fieldid) DO UPDATE SET fieldvalue = ? WHERE (\"" + tableAttr + "\".sid=?) AND (\"" + tableAttr + "\".fieldid=?)";
+                sql = "INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)" + " ON CONFLICT (sid, fieldid) DO UPDATE SET fieldvalue = ? WHERE (\"" + tableAttr + "\".sid=?) AND (\"" + tableAttr + "\".fieldid=?)";
                 stat = context.conn.prepareStatement(sql);
                 for (Map.Entry<String, String> pair : attrs.entrySet()) {
                     stat.setString(1, sidIdent);
