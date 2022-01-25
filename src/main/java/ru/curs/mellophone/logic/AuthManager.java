@@ -6,7 +6,6 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import javax.servlet.ServletContext;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -125,20 +124,23 @@ public final class AuthManager {
 
     /**
      * Destroy приложения в рабочем режиме.
-     *
-     * @param servletContext ServletContext
      */
-    public void productionModeDestroy(final ServletContext servletContext) {
+    public void productionModeDestroy() {
         if (timerTimeout != null) {
             timerTimeout.cancel();
         }
+        SQLLoginProvider.unregisterDrivers();
     }
 
     /**
      * Инициализация приложения в рабочем режиме.
-     *
      */
-    public void productionModeInitialize() {
+    public void productionModeInitialize(String mellophoneConfigPathIn, String log4jConfigPathIn) {
+
+
+        configPath = mellophoneConfigPathIn;
+        String log4jConfigPath = log4jConfigPathIn;
+
 
         try {
 /*
@@ -172,9 +174,6 @@ public final class AuthManager {
             }
 */
 
-            configPath = "C:\\Users\\Boris\\IdeaProjects\\mellophone\\src\\main\\resources\\config\\config.xml";
-            String log4jConfigPath = "C:\\Users\\Boris\\IdeaProjects\\mellophone\\src\\main\\resources\\config\\log4j.xml";
-
 
             File configFile = new File(configPath);
             if (!configFile.exists()) {
@@ -191,8 +190,6 @@ public final class AuthManager {
                 }
             }
 */
-
-
 
 
             LOGGER = LoggerFactory.getLogger(AuthManager.class);

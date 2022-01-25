@@ -4,6 +4,9 @@ import org.springframework.stereotype.Service;
 import ru.curs.mellophone.config.properties.MellophoneProperties;
 import ru.curs.mellophone.logic.AuthManager;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 @Service
 public class MellophoneService {
 
@@ -13,10 +16,18 @@ public class MellophoneService {
         this.properties = properties;
     }
 
+    @PostConstruct
+    private void postConstruct() {
+        AuthManager.getTheManager().productionModeInitialize(properties.getMellophoneConfigPath(), properties.getLog4jConfigPath());
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        AuthManager.getTheManager().productionModeDestroy();
+    }
+
     public String login() {
 
-        System.out.println(properties.getMellophoneConfigPath());
-        System.out.println(properties.getLog4jConfigPath());
 
         //AuthManager.login(sesid, gp, login, pwd, ip);
         AuthManager.getTheManager().login("123", "all", "user1", "2222", null);
