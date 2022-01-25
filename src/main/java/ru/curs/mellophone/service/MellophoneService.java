@@ -20,14 +20,20 @@ public record MellophoneService(MellophoneProperties properties) {
         AuthManager.getTheManager().productionModeDestroy();
     }
 
-    public String login() {
+    public void login(String sesid, String gp, String login, String pwd, String ip) {
+        if (gp == null) {
+            gp = AuthManager.GROUP_PROVIDERS_ALL;
+        }
+        if (AuthManager.GROUP_PROVIDERS_NOT_DEFINE.equalsIgnoreCase(gp)) {
+            gp = "";
+        }
 
+        if ((ip != null) && ip.isEmpty()) {
+            ip = null;
+        }
 
-        //AuthManager.login(sesid, gp, login, pwd, ip);
-        AuthManager.getTheManager().login("123", "all", "user1", "2222", null);
-
-        return "Hello login44!";
-
+        AuthManager.getTheManager().login(sesid, gp, login, pwd, ip);
     }
+
 
 }

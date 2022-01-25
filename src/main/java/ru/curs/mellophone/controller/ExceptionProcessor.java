@@ -9,10 +9,16 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.curs.mellophone.logic.EAuthServerLogic;
 
+import javax.validation.ConstraintViolationException;
+
 @ControllerAdvice
 public class ExceptionProcessor extends ResponseEntityExceptionHandler {
     @ExceptionHandler(EAuthServerLogic.class)
     protected ResponseEntity<Object> handleAuthException(EAuthServerLogic ex, WebRequest request) {
         return this.handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), HttpStatus.FORBIDDEN, request);
+    }
+    @ExceptionHandler(ConstraintViolationException.class)
+    protected ResponseEntity<Object> handleAuthException(ConstraintViolationException ex, WebRequest request) {
+        return this.handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 }
