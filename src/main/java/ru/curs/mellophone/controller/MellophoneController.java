@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.curs.mellophone.logic.AuthManager;
+import ru.curs.mellophone.service.MellophoneService;
 
 
 @RestController
@@ -12,15 +12,18 @@ import ru.curs.mellophone.logic.AuthManager;
 @RequestMapping("/mellophone")
 public class MellophoneController {
 
+    private final MellophoneService mellophoneService;
+
+    public MellophoneController(MellophoneService mellophoneService) {
+        this.mellophoneService = mellophoneService;
+    }
+
 
     @GetMapping("/login")
     public String login() {
 
-        //AuthManager.login(sesid, gp, login, pwd, ip);
-        AuthManager.getTheManager().login("123", "all", "user1", "2222", null);
+        return mellophoneService.login();
 
-
-        return "Hello login222222222222!";
 
     }
 

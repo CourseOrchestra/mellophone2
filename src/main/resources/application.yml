@@ -1,2 +1,10 @@
 server:
   port: 8082
+
+
+mellophone:
+  mellophoneConfigPath: C:\\Users\\Boris\\IdeaProjects\\mellophone-tomcat\\src\\main\\resources\\config\\config.xml
+  log4jConfigPath: C:\\Users\\Boris\\IdeaProjects\\mellophone-tomcat\\src\\main\\resources\\config\\log4j.xml
+
+
+
