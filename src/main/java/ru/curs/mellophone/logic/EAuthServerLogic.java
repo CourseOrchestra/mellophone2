@@ -3,7 +3,7 @@ package ru.curs.mellophone.logic;
 /**
  * Класс исключений логики сервера аутентификации.
  */
-public abstract class EAuthServerLogic extends Exception {
+public abstract class EAuthServerLogic extends RuntimeException {
 
     private static final long serialVersionUID = -110175493360344111L;
 

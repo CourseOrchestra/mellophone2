@@ -15,5 +15,4 @@ public class ExceptionProcessor extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleAuthException(EAuthServerLogic ex, WebRequest request) {
         return this.handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), HttpStatus.FORBIDDEN, request);
     }
-
 }

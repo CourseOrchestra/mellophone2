@@ -3,7 +3,6 @@ package ru.curs.mellophone.service;
 import org.springframework.stereotype.Service;
 import ru.curs.mellophone.config.properties.MellophoneProperties;
 import ru.curs.mellophone.logic.AuthManager;
-import ru.curs.mellophone.logic.EAuthServerLogic;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -21,7 +20,7 @@ public record MellophoneService(MellophoneProperties properties) {
         AuthManager.getTheManager().productionModeDestroy();
     }
 
-    public String login() throws EAuthServerLogic {
+    public String login() {
 
 
         //AuthManager.login(sesid, gp, login, pwd, ip);

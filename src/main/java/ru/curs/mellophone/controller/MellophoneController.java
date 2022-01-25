@@ -4,7 +4,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.curs.mellophone.logic.EAuthServerLogic;
 import ru.curs.mellophone.service.MellophoneService;
 
 
@@ -14,7 +13,7 @@ import ru.curs.mellophone.service.MellophoneService;
 public record MellophoneController(MellophoneService mellophoneService) {
 
     @GetMapping("/login")
-    public String login() throws EAuthServerLogic {
+    public String login() {
         return mellophoneService.login();
     }
 
