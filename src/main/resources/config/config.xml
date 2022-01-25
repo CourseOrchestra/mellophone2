@@ -30,6 +30,7 @@
 
     <sqlserverext>
         <id>test2</id>
+        <logging>true</logging>
         <group_providers>Группа1</group_providers>
         <logging>true</logging>
         <url>jdbc:postgresql://localhost:5432/test</url>
