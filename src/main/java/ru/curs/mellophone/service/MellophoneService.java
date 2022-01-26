@@ -39,6 +39,21 @@ public record MellophoneService(MellophoneProperties properties) {
         AuthManager.getTheManager().login(sesid, gp, login, pwd, ip);
     }
 
+
+    public void login2(String sesid, String login, String pwd) {
+
+
+
+        String authsesid = AuthManager.getTheManager().login(sesid, AuthManager.GROUP_PROVIDERS_ALL, login, pwd, null);
+
+
+//        response.addCookie(new Cookie("authsesid", authsesid));
+
+
+
+    }
+
+
     public void logout(String sesid) {
         AuthManager.getTheManager().logout(sesid);
     }

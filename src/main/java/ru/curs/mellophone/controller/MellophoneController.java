@@ -24,6 +24,27 @@ public class MellophoneController {
         mellophoneService.login(sesid, gp, login, pwd, ip);
     }
 
+
+
+
+
+
+
+
+    @RequestMapping("/login2")
+    public void login2(@NotNull String sesid, @NotNull String login, @NotNull String pwd) {
+
+
+        mellophoneService.login2(sesid, login, pwd);
+    }
+
+
+
+
+
+
+
+
     @RequestMapping("/logout")
     public void logout(@NotNull String sesid) {
         mellophoneService.logout(sesid);
