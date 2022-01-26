@@ -154,5 +154,9 @@ public record MellophoneService(MellophoneProperties properties) {
         AuthManager.getTheManager().changeAppSessionId(oldsesid, newsesid);
     }
 
+    public void loginesiauser(String sesid, String login, String userinfo) {
+        AuthManager.getTheManager().loginESIAUser(sesid, login, userinfo, null);
+    }
+
 
 }

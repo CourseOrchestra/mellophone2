@@ -89,6 +89,11 @@ public class MellophoneController {
         mellophoneService.changeappsesid(oldsesid, newsesid);
     }
 
+    @RequestMapping("/loginesiauser")
+    public void loginesiauser(@NotNull String sesid, @NotNull String login, String userinfo) {
+        mellophoneService.loginesiauser(sesid, login, userinfo);
+    }
+
 
 }
 
