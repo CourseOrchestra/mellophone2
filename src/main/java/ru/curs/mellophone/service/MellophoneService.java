@@ -138,5 +138,9 @@ public record MellophoneService(MellophoneProperties properties) {
         AuthManager.getTheManager().userUpdate(token, sid, isUser);
     }
 
+    public void userDelete(String token, String sid) {
+        AuthManager.getTheManager().userDelete(token, sid);
+    }
+
 
 }

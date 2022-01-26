@@ -69,5 +69,10 @@ public class MellophoneController {
         mellophoneService.userUpdate(token, sid, user);
     }
 
+    @DeleteMapping("/user/{sid}")
+    public void userDelete(@NotNull String token, @PathVariable @NotNull String sid) {
+        mellophoneService.userDelete(token, sid);
+    }
+
 
 }
