@@ -46,5 +46,10 @@ public class MellophoneController {
         return mellophoneService.getproviderlist(gp, login, pwd, ip);
     }
 
+    @RequestMapping("/importgroupsproviders")
+    public String importgroupsproviders() {
+        return mellophoneService.importgroupsproviders();
+    }
+
 
 }

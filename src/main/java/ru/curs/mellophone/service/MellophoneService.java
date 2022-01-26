@@ -61,7 +61,6 @@ public record MellophoneService(MellophoneProperties properties) {
         return os.toString();
     }
 
-
     public String getproviderlist(String gp, String login, String pwd, String ip) {
         if (gp == null) {
             gp = AuthManager.GROUP_PROVIDERS_ALL;
@@ -81,5 +80,12 @@ public record MellophoneService(MellophoneProperties properties) {
         return os.toString();
     }
 
+    public String importgroupsproviders() {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PrintWriter pw = new PrintWriter(os);
+        AuthManager.getTheManager().importGroupsProviders(pw);
+        pw.flush();
+        return os.toString();
+    }
 
 }
