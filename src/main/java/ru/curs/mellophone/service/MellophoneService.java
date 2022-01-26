@@ -10,7 +10,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
 
 @Service
 public record MellophoneService(MellophoneProperties properties) {
@@ -133,5 +132,11 @@ public record MellophoneService(MellophoneProperties properties) {
         InputStream isUser = new ByteArrayInputStream(user.getBytes());
         AuthManager.getTheManager().userCreate(token, isUser);
     }
+
+    public void userUpdate(String token, String sid, String user) {
+        InputStream isUser = new ByteArrayInputStream(user.getBytes());
+        AuthManager.getTheManager().userUpdate(token, sid, isUser);
+    }
+
 
 }

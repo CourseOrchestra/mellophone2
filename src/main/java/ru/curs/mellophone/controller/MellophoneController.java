@@ -64,5 +64,10 @@ public class MellophoneController {
         mellophoneService.userCreate(token, user);
     }
 
+    @PostMapping("/user/{sid}")
+    public void userUpdate(@NotNull String token, @PathVariable @NotNull String sid, @RequestBody @NotNull String user) {
+        mellophoneService.userUpdate(token, sid, user);
+    }
+
 
 }
