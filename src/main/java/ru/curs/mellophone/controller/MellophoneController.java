@@ -41,5 +41,10 @@ public class MellophoneController {
         return mellophoneService.checkname(sesid, name);
     }
 
+    @RequestMapping("/getproviderlist")
+    public String getproviderlist(String gp, @NotNull String login, @NotNull String pwd, String ip) {
+        return mellophoneService.getproviderlist(gp, login, pwd, ip);
+    }
+
 
 }

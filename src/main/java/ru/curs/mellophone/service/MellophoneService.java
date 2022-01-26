@@ -62,4 +62,24 @@ public record MellophoneService(MellophoneProperties properties) {
     }
 
 
+    public String getproviderlist(String gp, String login, String pwd, String ip) {
+        if (gp == null) {
+            gp = AuthManager.GROUP_PROVIDERS_ALL;
+        }
+        if (AuthManager.GROUP_PROVIDERS_NOT_DEFINE.equalsIgnoreCase(gp)) {
+            gp = "";
+        }
+
+        if ((ip != null) && ip.isEmpty()) {
+            ip = null;
+        }
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PrintWriter pw = new PrintWriter(os);
+        AuthManager.getTheManager().getProviderList(gp, login, pwd, ip, pw);
+        pw.flush();
+        return os.toString();
+    }
+
+
 }
