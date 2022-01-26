@@ -17,8 +17,9 @@ public class ExceptionProcessor extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleAuthException(EAuthServerLogic ex, WebRequest request) {
         return this.handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), HttpStatus.FORBIDDEN, request);
     }
+
     @ExceptionHandler(ConstraintViolationException.class)
     protected ResponseEntity<Object> handleAuthException(ConstraintViolationException ex, WebRequest request) {
-        return this.handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+        return this.handleExceptionInternal(ex, ex.getClass().getName() + ": " + ex.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 }
