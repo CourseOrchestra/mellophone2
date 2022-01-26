@@ -84,5 +84,22 @@ public class MellophoneController {
         return mellophoneService.changeuserpwd(sesid, username, newpwd);
     }
 
+    @RequestMapping("/changeappsesid")
+    public void changeappsesid(@NotNull String oldsesid, @NotNull String newsesid) {
+        mellophoneService.changeappsesid(oldsesid, newsesid);
+    }
+
 
 }
+
+
+
+
+
+
+
+
+
+
+
+

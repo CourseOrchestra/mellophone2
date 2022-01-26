@@ -150,5 +150,9 @@ public record MellophoneService(MellophoneProperties properties) {
         return AuthManager.getTheManager().changeUserPwd(sesid, username, newpwd);
     }
 
+    public void changeappsesid(String oldsesid, String newsesid) {
+        AuthManager.getTheManager().changeAppSessionId(oldsesid, newsesid);
+    }
+
 
 }
