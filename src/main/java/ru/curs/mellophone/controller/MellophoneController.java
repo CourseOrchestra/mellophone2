@@ -1,7 +1,9 @@
 package ru.curs.mellophone.controller;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.curs.mellophone.service.MellophoneService;
 
 import javax.validation.constraints.NotNull;
@@ -29,6 +31,10 @@ public class MellophoneController {
         mellophoneService.logout(sesid);
     }
 
+    @RequestMapping({"/isauthenticated", "/checkid"})
+    public String login(@NotNull String sesid, String ip) {
+        return mellophoneService.isauthenticated(sesid, ip);
+    }
 
 
 }

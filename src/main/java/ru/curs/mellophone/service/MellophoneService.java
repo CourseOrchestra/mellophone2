@@ -6,6 +6,8 @@ import ru.curs.mellophone.logic.AuthManager;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 
 @Service
 public record MellophoneService(MellophoneProperties properties) {
@@ -39,8 +41,17 @@ public record MellophoneService(MellophoneProperties properties) {
         AuthManager.getTheManager().logout(sesid);
     }
 
+    public String isauthenticated(String sesid, String ip) {
+        if ((ip != null) && ip.isEmpty()) {
+            ip = null;
+        }
 
-
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PrintWriter pw = new PrintWriter(os);
+        AuthManager.getTheManager().isAuthenticated(sesid, ip, pw);
+        pw.flush();
+        return os.toString();
+    }
 
 
 }
