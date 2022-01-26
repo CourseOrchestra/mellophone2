@@ -32,8 +32,13 @@ public class MellophoneController {
     }
 
     @RequestMapping({"/isauthenticated", "/checkid"})
-    public String login(@NotNull String sesid, String ip) {
+    public String isauthenticated(@NotNull String sesid, String ip) {
         return mellophoneService.isauthenticated(sesid, ip);
+    }
+
+    @RequestMapping("/checkname")
+    public String checkname(@NotNull String sesid, @NotNull String name) {
+        return mellophoneService.checkname(sesid, name);
     }
 
 

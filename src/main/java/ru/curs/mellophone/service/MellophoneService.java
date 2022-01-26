@@ -53,5 +53,13 @@ public record MellophoneService(MellophoneProperties properties) {
         return os.toString();
     }
 
+    public String checkname(String sesid, String name) {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PrintWriter pw = new PrintWriter(os);
+        AuthManager.getTheManager().checkName(sesid, name, pw);
+        pw.flush();
+        return os.toString();
+    }
+
 
 }
