@@ -3,8 +3,8 @@ server:
 
 
 mellophone:
-  mellophoneConfigPath: C:\\Users\\Boris\\IdeaProjects\\mellophone\\src\\main\\resources\\config\\config.xml
-  log4jConfigPath: C:\\Users\\Boris\\IdeaProjects\\mellophone\\src\\main\\resources\\config\\log4j.xml
+  mellophoneConfigPath: C:/Users/Boris/IdeaProjects/mellophone/src/main/resources/config/config.xml
+  log4jConfigPath: C:/Users/Boris/IdeaProjects/mellophone/src/main/resources/config/log4j.xml
 
 
 

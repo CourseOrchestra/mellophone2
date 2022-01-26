@@ -13,7 +13,7 @@
         <authsessions initialCapacity="10000" loadFactor="80" concurrencyLevel="128"/>
         <appsessions initialCapacity="10000" loadFactor="80" concurrencyLevel="128"/>
 
-        <lockouttime>1</lockouttime>
+        <lockouttime>20</lockouttime>
 
         <loginattemptsallowed>3</loginattemptsallowed>
 
@@ -25,7 +25,6 @@
 
         <checkpasswordhashonly>false</checkpasswordhashonly>
     </common>
-
 
 
     <sqlserverext>
@@ -42,65 +41,57 @@
     </sqlserverext>
 
 
-<!--
-    <hashalgorithm>SHA-128</hashalgorithm>
-    <localsecuritysalt>dddd</localsecuritysalt>
--->
+    <!--
+        <hashalgorithm>SHA-128</hashalgorithm>
+        <localsecuritysalt>dddd</localsecuritysalt>
+    -->
 
 
-<!--
-    <sqlserverext>
-        <logging>true</logging>
-        <url>jdbc:postgresql://localhost:5432/test</url>
-        <connectionusername>postgres</connectionusername>
-        <connectionpassword>F708420Dx</connectionpassword>
-        <table>User22</table>
-        <tableattr>UserAttr22</tableattr>
-    </sqlserverext>
--->
-
-
-
-
-<!--
-    <sqlserver>
-        <logging>true</logging>
-        <url>jdbc:postgresql://localhost:5432/test</url>
-        <connectionusername>postgres</connectionusername>
-        <connectionpassword>F708420Dx</connectionpassword>
-        <table>Пользователи</table>
-        <fieldlogin>Логин</fieldlogin>
-        <fieldpassword>Пароль</fieldpassword>
-        <fieldblocked>Заблокированный</fieldblocked>
-        <searchreturningattributes
-                SID="Поле objectSid"
-                login="Логин"
-                name="Поле name"
-                email="Поле email"
-                phone="Поле phone"
-                organization = ""
-                fax = "Поле fax"
-        />
-    </sqlserver>
--->
-
-
-
-
-
-
-<!--
-        <xmlfile>
-            <id>test2</id>
+    <!--
+        <sqlserverext>
             <logging>true</logging>
-            <url>
-                C:\\Users\\Boris\\IdeaProjects\\mellophone\\src\\main\\resources\\config\\samples\\users.xml
-            </url>
-            <trusteduser>Иванов1</trusteduser>
-        </xmlfile>
--->
+            <url>jdbc:postgresql://localhost:5432/test</url>
+            <connectionusername>postgres</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>User22</table>
+            <tableattr>UserAttr22</tableattr>
+        </sqlserverext>
+    -->
 
 
+    <!--
+        <sqlserver>
+            <logging>true</logging>
+            <url>jdbc:postgresql://localhost:5432/test</url>
+            <connectionusername>postgres</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>Пользователи</table>
+            <fieldlogin>Логин</fieldlogin>
+            <fieldpassword>Пароль</fieldpassword>
+            <fieldblocked>Заблокированный</fieldblocked>
+            <searchreturningattributes
+                    SID="Поле objectSid"
+                    login="Логин"
+                    name="Поле name"
+                    email="Поле email"
+                    phone="Поле phone"
+                    organization = ""
+                    fax = "Поле fax"
+            />
+        </sqlserver>
+    -->
+
+
+    <!--
+            <xmlfile>
+                <id>test2</id>
+                <logging>true</logging>
+                <url>
+                    C:\\Users\\Boris\\IdeaProjects\\mellophone\\src\\main\\resources\\config\\samples\\users.xml
+                </url>
+                <trusteduser>Иванов1</trusteduser>
+            </xmlfile>
+    -->
 
 
     <!--

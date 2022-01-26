@@ -116,6 +116,11 @@ public class MellophoneController {
         return mellophoneService.getdjangoauthid(sesid, authsesid, callback);
     }
 
+    @RequestMapping("/setsettings")
+    public void setsettings(@NotNull String token, String lockouttime, String loginattemptsallowed) {
+        mellophoneService.setsettings(token, lockouttime, loginattemptsallowed);
+    }
+
 
 }
 

@@ -174,6 +174,10 @@ public record MellophoneService(MellophoneProperties properties) {
         return os.toString();
     }
 
+    public void setsettings(String token, String lockouttime, String loginattemptsallowed) {
+        AuthManager.getTheManager().setSettings(token, lockouttime, loginattemptsallowed);
+    }
+
 
 }
 
