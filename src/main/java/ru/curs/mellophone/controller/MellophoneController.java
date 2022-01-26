@@ -111,6 +111,11 @@ public class MellophoneController {
         return callback + "();";
     }
 
+    @RequestMapping("/getdjangoauthid")
+    public String getdjangoauthid(@NotNull String sesid, String callback, @CookieValue String authsesid) {
+        return mellophoneService.getdjangoauthid(sesid, authsesid, callback);
+    }
+
 
 }
 

@@ -166,6 +166,14 @@ public record MellophoneService(MellophoneProperties properties) {
         return AuthManager.getTheManager().setDjangoAuthId(djangosesid, djangoauthid, login, name, sid);
     }
 
+    public String getdjangoauthid(String djangosesid, String authsesid, String djangoCallback) {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PrintWriter pw = new PrintWriter(os);
+        AuthManager.getTheManager().getDjangoAuthId(djangosesid, authsesid, djangoCallback, pw);
+        pw.flush();
+        return os.toString();
+    }
+
 
 }
 
