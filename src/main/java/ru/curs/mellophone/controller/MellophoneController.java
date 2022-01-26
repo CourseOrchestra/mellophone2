@@ -51,5 +51,10 @@ public class MellophoneController {
         return mellophoneService.importgroupsproviders();
     }
 
+    @RequestMapping("/checkcredentials")
+    public String checkcredentials(String gp, @NotNull String login, @NotNull String pwd, String ip) {
+        return mellophoneService.checkcredentials(gp, login, pwd, ip);
+    }
+
 
 }
