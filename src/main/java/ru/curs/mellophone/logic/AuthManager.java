@@ -1040,23 +1040,21 @@ public final class AuthManager {
             ProviderContextHolder context = as.config.newContextHolder();
 
 
-            if ("LDAPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) {
-
-                try {
-                    as.config.connect(sesid, as.getName(), as.getPwd(), null, context, null);
-                    as.config.changePwd(context, userName, newpwd);
-                } finally {
-                    context.closeContext();
-                }
-
-                for (String id : authsessions.keySet()) {
-                    if (userName.equals(authsessions.get(id).getName())) {
-                        authsessions.get(id).setPwd(newpwd);
-                        break;
-                    }
-                }
-
+            try {
+                as.config.connect(sesid, as.getName(), as.getPwd(), null, context, null);
+                as.config.changePwd(context, userName, newpwd);
+            } finally {
+                context.closeContext();
             }
+
+            for (String id : authsessions.keySet()) {
+                if (userName.equals(authsessions.get(id).getName())) {
+                    authsessions.get(id).setPwd(newpwd);
+                    break;
+                }
+            }
+
+
             name = as.getName();
         } catch (Exception e) {
             throw EAuthServerLogic.create(String.format(PROVIDER_ERROR, e.getMessage()));

@@ -142,5 +142,13 @@ public record MellophoneService(MellophoneProperties properties) {
         AuthManager.getTheManager().userDelete(token, sid);
     }
 
+    public String changepwd(String sesid, String oldpwd, String newpwd) {
+        return AuthManager.getTheManager().changeOwnPwd(sesid, oldpwd, newpwd);
+    }
+
+    public String changeuserpwd(String sesid, String username, String newpwd) {
+        return AuthManager.getTheManager().changeUserPwd(sesid, username, newpwd);
+    }
+
 
 }

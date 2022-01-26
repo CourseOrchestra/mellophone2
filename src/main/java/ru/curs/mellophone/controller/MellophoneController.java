@@ -74,5 +74,15 @@ public class MellophoneController {
         mellophoneService.userDelete(token, sid);
     }
 
+    @RequestMapping("/changepwd")
+    public String changepwd(@NotNull String sesid, @NotNull String oldpwd, @NotNull String newpwd) {
+        return mellophoneService.changepwd(sesid, oldpwd, newpwd);
+    }
+
+    @RequestMapping("/changeuserpwd")
+    public String changeuserpwd(@NotNull String sesid, @NotNull String username, @NotNull String newpwd) {
+        return mellophoneService.changeuserpwd(sesid, username, newpwd);
+    }
+
 
 }
