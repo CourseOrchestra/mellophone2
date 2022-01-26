@@ -4,6 +4,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.curs.mellophone.service.MellophoneService;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 
 
@@ -24,26 +26,12 @@ public class MellophoneController {
         mellophoneService.login(sesid, gp, login, pwd, ip);
     }
 
-
-
-
-
-
-
-
     @RequestMapping("/login2")
-    public void login2(@NotNull String sesid, @NotNull String login, @NotNull String pwd) {
-
-
-        mellophoneService.login2(sesid, login, pwd);
+    public void login2(@NotNull String sesid, @NotNull String login, @NotNull String pwd, HttpServletResponse response) {
+        String authsesid = mellophoneService.login2(sesid, login, pwd);
+        Cookie cookie = new Cookie("authsesid", authsesid);
+        response.addCookie(cookie);
     }
-
-
-
-
-
-
-
 
     @RequestMapping("/logout")
     public void logout(@NotNull String sesid) {
