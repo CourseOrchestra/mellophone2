@@ -35,5 +35,12 @@ public record MellophoneService(MellophoneProperties properties) {
         AuthManager.getTheManager().login(sesid, gp, login, pwd, ip);
     }
 
+    public void logout(String sesid) {
+        AuthManager.getTheManager().logout(sesid);
+    }
+
+
+
+
 
 }
