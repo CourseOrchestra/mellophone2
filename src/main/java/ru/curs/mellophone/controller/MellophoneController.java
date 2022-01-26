@@ -103,6 +103,14 @@ public class MellophoneController {
         mellophoneService.loginesiauser(sesid, login, userinfo);
     }
 
+    @RequestMapping("/setdjangoauthid")
+    public String setdjangoauthid(@NotNull String sesid, @NotNull String djangoauthid, @NotNull String login, @NotNull String name, @NotNull String sid, String callback, HttpServletResponse response) {
+        String authsesid = mellophoneService.setdjangoauthid(sesid, djangoauthid, login, name, sid);
+        Cookie cookie = new Cookie("authsesid", authsesid);
+        response.addCookie(cookie);
+        return callback + "();";
+    }
+
 
 }
 
