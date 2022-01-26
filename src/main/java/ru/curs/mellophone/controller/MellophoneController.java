@@ -56,5 +56,9 @@ public class MellophoneController {
         return mellophoneService.checkcredentials(gp, login, pwd, ip);
     }
 
+    @RequestMapping("/getuserlist")
+    public String getuserlist(String pid, String gp, @NotNull String token, String ip) {
+        return mellophoneService.getuserlist(pid, gp, token, ip);
+    }
 
 }
