@@ -6,8 +6,11 @@ import ru.curs.mellophone.logic.AuthManager;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 
 @Service
 public record MellophoneService(MellophoneProperties properties) {
@@ -126,5 +129,9 @@ public record MellophoneService(MellophoneProperties properties) {
         return os.toString();
     }
 
+    public void userCreate(String token, String user) {
+        InputStream isUser = new ByteArrayInputStream(user.getBytes());
+        AuthManager.getTheManager().userCreate(token, isUser);
+    }
 
 }
