@@ -89,59 +89,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         return st;
     }
 
-    private static Driver registerDriver(String url) throws SQLException {
-        Driver result = null;
-        if (getSQLServerType(url) == SQLServerType.MSSQL) {
-            try {
-                result = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
-                DriverManager.registerDriver(result);
-            } catch (Exception e) {
-                throw new SQLException(e);
-            }
-        }
-        if (getSQLServerType(url) == SQLServerType.POSTGRESQL) {
-            try {
-                result = (Driver) Class.forName("org.postgresql.Driver").newInstance();
-                DriverManager.registerDriver(result);
-            } catch (Exception e) {
-                throw new SQLException(e);
-            }
-        }
-        if (getSQLServerType(url) == SQLServerType.ORACLE) {
-            try {
-                result = (Driver) Class.forName("oracle.jdbc.driver.OracleDriver").newInstance();
-                DriverManager.registerDriver(result);
-            } catch (Exception e) {
-                throw new SQLException(e);
-            }
-        }
-        if (getSQLServerType(url) == SQLServerType.FIREBIRD) {
-            try {
-                result = (Driver) Class.forName("org.firebirdsql.jdbc.FBDriver").newInstance();
-                DriverManager.registerDriver(result);
-            } catch (Exception e) {
-                throw new SQLException(e);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Дерегистрирует драйвера работы с БД.
-     */
-    public static Driver unregisterDrivers() {
-        Driver result = null;
-        while (DriverManager.getDrivers().hasMoreElements()) {
-            try {
-                result = DriverManager.getDrivers().nextElement();
-                DriverManager.deregisterDriver(result);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return result;
-    }
-
     private static void checkForPossibleSQLInjection(String sql, String errMsg) throws EAuthServerLogic {
         if (sql.indexOf(" ") > -1) throw EAuthServerLogic.create(errMsg);
     }
@@ -213,7 +160,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             c = pool.poll();
         }
 
-        registerDriver(getConnectionUrl());
         return DriverManager.getConnection(getConnectionUrl(), connectionUsername, connectionPassword);
     }
 
@@ -235,7 +181,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
 
             if (authMethod == AuthMethod.CONNECT) {
-                registerDriver(getConnectionUrl());
                 Connection connAuthMethodCONNECT = DriverManager.getConnection(getConnectionUrl(), login, password);
                 connAuthMethodCONNECT.close();
             }

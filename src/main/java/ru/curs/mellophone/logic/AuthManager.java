@@ -128,7 +128,6 @@ public final class AuthManager {
         if (timerTimeout != null) {
             timerTimeout.cancel();
         }
-        SQLLoginProvider.unregisterDrivers();
     }
 
     /**
