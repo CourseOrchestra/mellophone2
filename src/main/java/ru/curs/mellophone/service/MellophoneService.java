@@ -16,7 +16,7 @@ public record MellophoneService(MellophoneProperties properties) {
 
     @PostConstruct
     private void postConstruct() {
-        AuthManager.getTheManager().productionModeInitialize(properties.getMellophoneConfigPath(), properties.getLog4jConfigPath());
+        AuthManager.getTheManager().productionModeInitialize(properties.getConfigFile());
     }
 
     @PreDestroy

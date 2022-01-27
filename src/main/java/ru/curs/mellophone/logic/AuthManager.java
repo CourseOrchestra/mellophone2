@@ -133,61 +133,16 @@ public final class AuthManager {
     /**
      * Инициализация приложения в рабочем режиме.
      */
-    public void productionModeInitialize(String mellophoneConfigPathIn, String log4jConfigPathIn) {
+    public void productionModeInitialize(String mellophoneConfigFile) {
 
-
-        configPath = mellophoneConfigPathIn;
-        String log4jConfigPath = log4jConfigPathIn;
-
+        configPath = mellophoneConfigFile;
 
         try {
-/*
-            configPath = servletContext
-                    .getInitParameter(MELLOPHONE_CONFIG_PATH);
-            String log4jConfigPath = servletContext
-                    .getInitParameter(LOG4J_CONFIG_PATH);
-
-            if (configPath == null) {
-                Properties prop = new Properties();
-                try {
-                    ClassLoader classLoader = Thread.currentThread()
-                            .getContextClassLoader();
-                    InputStream is = classLoader
-                            .getResourceAsStream(GENERAL_PROPERTIES);
-
-                    try (InputStreamReader reader = new InputStreamReader(is,
-                            TextUtils.DEF_ENCODING)) {
-                        prop.load(reader);
-                        configPath = prop.getProperty(MELLOPHONE_CONFIG_PATH);
-                        log4jConfigPath = prop.getProperty(LOG4J_CONFIG_PATH);
-                    }
-
-                } catch (Exception e) {
-                }
-            }
-
-            if (configPath == null) {
-                configPath = servletContext.getRealPath("") + "../../config.xml";
-                log4jConfigPath = servletContext.getRealPath("") + "../../log4j.xml";
-            }
-*/
-
-
             File configFile = new File(configPath);
             if (!configFile.exists()) {
                 initializationError = "файл конфигурации " + configFile.getCanonicalPath() + " не существует.";
                 return;
             }
-
-/*
-            if (log4jConfigPath != null) {
-                File log4jConfigFile = new File(log4jConfigPath);
-                if (log4jConfigFile.exists()) {
-                    System.setProperty("log4j.configuration", "file:" + log4jConfigPath);
-                }
-            }
-*/
-
 
             LOGGER = LoggerFactory.getLogger(AuthManager.class);
 

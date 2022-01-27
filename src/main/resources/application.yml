@@ -3,8 +3,20 @@ server:
 
 
 mellophone:
-  mellophoneConfigPath: C:/Users/Boris/IdeaProjects/mellophone/src/main/resources/config/config.xml
-  log4jConfigPath: C:/Users/Boris/IdeaProjects/mellophone/src/main/resources/config/log4j.xml
+  configFile: C:/Users/Boris/IdeaProjects/mellophone/src/main/resources/config/config.xml
+
+
+
+#logging:
+  #config: C:/Users/Boris/IdeaProjects/mellophone/src/main/resources/config/samples/logback.xml
+  #file:
+    #name: D:/Downloads/27/31_mellophone/1_LOG/mellophone.log
+  #pattern:
+    #console: ""
+    #console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    #file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  #level:
+    #root: INFO
 
 
 

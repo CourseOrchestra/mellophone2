@@ -6,22 +6,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class MellophoneProperties {
     public static final String PREFIX = "mellophone";
 
-    private String mellophoneConfigPath;
-    private String log4jConfigPath;
+    private String configFile;
 
-    public String getMellophoneConfigPath() {
-        return mellophoneConfigPath;
+    public String getConfigFile() {
+        return configFile;
     }
 
-    public void setMellophoneConfigPath(String mellophoneConfigPath) {
-        this.mellophoneConfigPath = mellophoneConfigPath;
+    public void setConfigFile(String configFile) {
+        this.configFile = configFile;
     }
 
-    public String getLog4jConfigPath() {
-        return log4jConfigPath;
-    }
-
-    public void setLog4jConfigPath(String log4jConfigPath) {
-        this.log4jConfigPath = log4jConfigPath;
-    }
 }
