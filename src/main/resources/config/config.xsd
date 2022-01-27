@@ -12,8 +12,28 @@
                         <xs:sequence>
                             <xs:element minOccurs="0" name="threadcount"/>
                             <xs:element minOccurs="0" name="sessiontimeout"/>
-                            <xs:element minOccurs="0" name="authsessions"/>
-                            <xs:element minOccurs="0" name="appsessions"/>
+                            <xs:element minOccurs="0" name="authsessions">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="xs:string">
+                                            <xs:attribute name="initialCapacity" type="xs:integer"/>
+                                            <xs:attribute name="loadFactor" type="xs:integer"/>
+                                            <xs:attribute name="concurrencyLevel" type="xs:integer"/>
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element minOccurs="0" name="appsessions">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="xs:string">
+                                            <xs:attribute name="initialCapacity" type="xs:integer"/>
+                                            <xs:attribute name="loadFactor" type="xs:integer"/>
+                                            <xs:attribute name="concurrencyLevel" type="xs:integer"/>
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
                             <xs:element minOccurs="0" name="lockouttime"/>
                             <xs:element minOccurs="0" name="loginattemptsallowed"/>
                             <xs:element minOccurs="0" name="setsettingstoken"/>
