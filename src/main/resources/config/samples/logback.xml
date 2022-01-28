@@ -13,10 +13,10 @@
     <springProfile name="default">
 
         <appender name="FILE-ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>D:/Downloads/27/31_mellophone/app.log</file>
+            <file>D:/Downloads/27/31_mellophone/1_jar/log/app.log</file>
 
             <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-                <fileNamePattern>D:/Downloads/27/31_mellophone/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <fileNamePattern>D:/Downloads/27/31_mellophone/1_jar/log/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
                 <!-- each archived file, size max 10MB -->
                 <maxFileSize>10MB</maxFileSize>
                 <!-- total size of all archive files, if total size > 20GB, it will delete old archived file -->
