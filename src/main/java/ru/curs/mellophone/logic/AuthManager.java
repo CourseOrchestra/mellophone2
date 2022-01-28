@@ -171,6 +171,7 @@ public final class AuthManager {
         } finally {
             if (initializationError != null) {
                 initializationError = "Mellophone не инициализирован по причине: " + initializationError;
+                throw EAuthServerLogic.create(initializationError);
             }
         }
 
