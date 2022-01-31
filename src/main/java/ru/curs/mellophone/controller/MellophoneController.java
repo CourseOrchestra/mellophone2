@@ -140,20 +140,14 @@ public class MellophoneController {
                 cookie.setMaxAge(0);
                 response.addCookie(cookie);
             }
-
             banner = BW_BANNER;
         } else {
-            if ("AUTH_OK".equals(authsesidNew)) {
-                banner = COLOR_BANNER;
-
-            } else {
+            if (!"AUTH_OK".equals(authsesidNew)) {
                 Cookie cookie = new Cookie("authsesid", authsesidNew);
                 response.addCookie(cookie);
-
-                banner = COLOR_BANNER;
             }
+            banner = COLOR_BANNER;
         }
-
 
         InputStream in = getClass().getResourceAsStream(DIR_IMAGES + banner);
         byte[] array;
@@ -164,21 +158,8 @@ public class MellophoneController {
             e.printStackTrace();
             throw EAuthServerLogic.create(e);
         }
+
         return array;
-
-
-
-
-/*
-        try {
-            return Objects.requireNonNull(getClass().getResourceAsStream("/images/color22.gif")).readAllBytes();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw EAuthServerLogic.create(e);
-        }
-*/
-
-
     }
 
 
