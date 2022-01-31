@@ -178,6 +178,10 @@ public record MellophoneService(MellophoneProperties properties) {
         AuthManager.getTheManager().setSettings(token, lockouttime, loginattemptsallowed);
     }
 
+    public String authenticationgif(String sesid, String authsesid) {
+        return AuthManager.getTheManager().authenticationGif(sesid, authsesid);
+    }
+
 
 }
 

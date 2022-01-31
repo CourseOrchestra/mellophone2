@@ -1,12 +1,15 @@
 package ru.curs.mellophone.controller;
 
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.curs.mellophone.logic.EAuthServerLogic;
 import ru.curs.mellophone.service.MellophoneService;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
+import java.io.InputStream;
 
 
 @Validated
@@ -14,6 +17,10 @@ import javax.validation.constraints.NotNull;
 @CrossOrigin
 @RequestMapping("/mellophone")
 public class MellophoneController {
+
+    private static final String DIR_IMAGES = "/images/";
+    private static final String COLOR_BANNER = "color.gif";
+    private static final String BW_BANNER = "bw.gif";
 
     private final MellophoneService mellophoneService;
 
@@ -112,13 +119,66 @@ public class MellophoneController {
     }
 
     @RequestMapping("/getdjangoauthid")
-    public String getdjangoauthid(@NotNull String sesid, String callback, @CookieValue String authsesid) {
+    public String getdjangoauthid(@NotNull String sesid, String callback, @CookieValue(required = false) String authsesid) {
         return mellophoneService.getdjangoauthid(sesid, authsesid, callback);
     }
 
     @RequestMapping("/setsettings")
     public void setsettings(@NotNull String token, String lockouttime, String loginattemptsallowed) {
         mellophoneService.setsettings(token, lockouttime, loginattemptsallowed);
+    }
+
+    @RequestMapping(value = "/authentication.gif", produces = MediaType.IMAGE_GIF_VALUE)
+    public @ResponseBody
+    byte[] authenticationgif(@NotNull String sesid, @CookieValue(required = false) String authsesid, HttpServletResponse response) {
+
+        String authsesidNew = mellophoneService.authenticationgif(sesid, authsesid);
+        String banner;
+        if (authsesidNew == null) {
+            if (authsesid != null) {
+                Cookie cookie = new Cookie("authsesid", null);
+                cookie.setMaxAge(0);
+                response.addCookie(cookie);
+            }
+
+            banner = BW_BANNER;
+        } else {
+            if ("AUTH_OK".equals(authsesidNew)) {
+                banner = COLOR_BANNER;
+
+            } else {
+                Cookie cookie = new Cookie("authsesid", authsesidNew);
+                response.addCookie(cookie);
+
+                banner = COLOR_BANNER;
+            }
+        }
+
+
+        InputStream in = getClass().getResourceAsStream(DIR_IMAGES + banner);
+        byte[] array;
+        try {
+            assert in != null;
+            array = in.readAllBytes();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw EAuthServerLogic.create(e);
+        }
+        return array;
+
+
+
+
+/*
+        try {
+            return Objects.requireNonNull(getClass().getResourceAsStream("/images/color22.gif")).readAllBytes();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw EAuthServerLogic.create(e);
+        }
+*/
+
+
     }
 
 
