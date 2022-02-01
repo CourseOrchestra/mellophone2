@@ -13,6 +13,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
 
+        <spring-boot-maven-plugin.version>2.6.3</spring-boot-maven-plugin.version>
         <spring-boot-starter-parent.version>2.6.2</spring-boot-starter-parent.version>
         <Saxon-HE.version>10.6</Saxon-HE.version>
         <httpclient.version>4.5.13</httpclient.version>
@@ -21,7 +22,6 @@
         <postgresql.version>42.3.1</postgresql.version>
         <mssql-jdbc.version>10.1.0.jre17-preview</mssql-jdbc.version>
         <ojdbc11.version>21.4.0.0</ojdbc11.version>
-        <spring-boot-maven-plugin.version>2.6.3</spring-boot-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
