@@ -3,16 +3,17 @@ package ru.curs.mellophone.service;
 import org.springframework.stereotype.Service;
 import ru.curs.mellophone.config.properties.MellophoneProperties;
 import ru.curs.mellophone.logic.AuthManager;
-import ru.curs.mellophone.logic.EAuthServerLogic;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public record MellophoneService(MellophoneProperties properties) {
-
-    private static final String UTF8 = "UTF-8";
 
     @PostConstruct
     private void postConstruct() {
@@ -133,24 +134,14 @@ public record MellophoneService(MellophoneProperties properties) {
     }
 
     public void userCreate(String token, String user) {
-        InputStream isUser = null;
-        try {
-            isUser = new ByteArrayInputStream(user.getBytes(UTF8));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            throw EAuthServerLogic.create(e);
-        }
+        InputStream isUser;
+        isUser = new ByteArrayInputStream(user.getBytes(StandardCharsets.UTF_8));
         AuthManager.getTheManager().userCreate(token, isUser);
     }
 
     public void userUpdate(String token, String sid, String user) {
-        InputStream isUser = null;
-        try {
-            isUser = new ByteArrayInputStream(user.getBytes(UTF8));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            throw EAuthServerLogic.create(e);
-        }
+        InputStream isUser;
+        isUser = new ByteArrayInputStream(user.getBytes(StandardCharsets.UTF_8));
         AuthManager.getTheManager().userUpdate(token, sid, isUser);
     }
 
