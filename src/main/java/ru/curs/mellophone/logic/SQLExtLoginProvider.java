@@ -48,8 +48,8 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     private static final String PBKDF2_ALG_DIVIDER = ":";
 
     private static ConcurrentHashMap<String, MessageDigest> mdPool = new ConcurrentHashMap<String, MessageDigest>(4);
-
     private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
+    private DataSource dataSource = null;
     private String fieldLogin = "login";
     private String fieldPassword = "pwd";
     private String connectionUsername;
@@ -60,8 +60,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     private String hashAlgorithm = "SHA-256";
     private String localSecuritySalt = "";
     private String procPostProcess = null;
-
-    private DataSource dataSource = null;
 
     private static void checkForPossibleSQLInjection(String sql, String errMsg) throws EAuthServerLogic {
         if (sql.indexOf(" ") > -1) throw EAuthServerLogic.create(errMsg);

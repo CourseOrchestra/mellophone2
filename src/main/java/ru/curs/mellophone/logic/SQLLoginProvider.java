@@ -1,10 +1,12 @@
 package ru.curs.mellophone.logic;
 
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.sql.DataSource;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -20,9 +22,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.HexFormat;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 
 /**
@@ -42,13 +42,9 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     private static final String PBKDF2_PASSWORD_DIVIDER = "\\$";
     private static final String PBKDF2_ALG_DIVIDER = ":";
 
-
     private static ConcurrentHashMap<String, MessageDigest> mdPool = new ConcurrentHashMap<String, MessageDigest>(4);
-
-    // private final Queue<Connection> pool = new LinkedList<Connection>();
-
-    private final Queue<Connection> pool = new ConcurrentLinkedDeque<Connection>();
     private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
+    private DataSource dataSource = null;
     private String connectionUsername;
     private String connectionPassword;
     private String table;
@@ -147,20 +143,15 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     }
 
     private synchronized Connection getConnection() throws SQLException {
-        // Сначала пытаемся достать коннекшн из пула
-        Connection c = pool.poll();
-        while (c != null) {
-            try {
-                if (c.isValid(1)) {
-                    return c;
-                }
-            } catch (SQLException e) { // CHECKSTYLE:OFF
-                // CHECKSTYLE:ON
-            }
-            c = pool.poll();
+        if (dataSource == null) {
+            DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
+            dataSourceBuilder.url(getConnectionUrl());
+            dataSourceBuilder.username(connectionUsername);
+            dataSourceBuilder.password(connectionPassword);
+            dataSource = dataSourceBuilder.build();
         }
 
-        return DriverManager.getConnection(getConnectionUrl(), connectionUsername, connectionPassword);
+        return dataSource.getConnection();
     }
 
     @Override
@@ -179,15 +170,12 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         BadLoginType blt = BadLoginType.BAD_CREDENTIALS;
         try {
 
-
             if (authMethod == AuthMethod.CONNECT) {
-                Connection connAuthMethodCONNECT = DriverManager.getConnection(getConnectionUrl(), login, password);
+                Connection connAuthMethodCONNECT = DataSourceBuilder.create().url(getConnectionUrl()).build().getConnection(login, password);
                 connAuthMethodCONNECT.close();
             }
 
-
             ((SQLLink) context).conn = getConnection();
-
 
             if (getSQLServerType(getConnectionUrl()) == SQLServerType.FIREBIRD) {
 
@@ -629,7 +617,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         @Override
         void closeContext() {
             try {
-                if (conn != null && conn.isValid(1)) pool.add(conn);
+                conn.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
