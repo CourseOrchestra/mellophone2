@@ -312,6 +312,8 @@
                                     </xs:restriction>
                                 </xs:simpleType>
                             </xs:element>
+                            <xs:element minOccurs="0" name="hikariproperties">
+                            </xs:element>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
@@ -392,6 +394,8 @@
                                     <xs:restriction base="xs:string">
                                     </xs:restriction>
                                 </xs:simpleType>
+                            </xs:element>
+                            <xs:element minOccurs="0" name="hikariproperties">
                             </xs:element>
                         </xs:sequence>
                     </xs:complexType>

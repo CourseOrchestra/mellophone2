@@ -1,7 +1,8 @@
 package ru.curs.mellophone.logic;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -9,7 +10,6 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import javax.sql.DataSource;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -25,9 +25,11 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Math.min;
+import static java.util.Objects.nonNull;
 
 
 /**
@@ -49,7 +51,8 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
     private static ConcurrentHashMap<String, MessageDigest> mdPool = new ConcurrentHashMap<String, MessageDigest>(4);
     private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
-    private DataSource dataSource = null;
+    private HikariDataSource dataSource = null;
+    private Properties hikariProperties = new Properties();
     private String fieldLogin = "login";
     private String fieldPassword = "pwd";
     private String connectionUsername;
@@ -70,6 +73,10 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         if (isLogging) {
             setLogger(LoggerFactory.getLogger(SQLExtLoginProvider.class));
         }
+    }
+
+    void addHikariProperty(String name, String value) {
+        hikariProperties.put(name, value);
     }
 
     void setConnectionUsername(String connectionUsername) {
@@ -120,11 +127,17 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
     private synchronized Connection getConnection() throws SQLException {
         if (dataSource == null) {
-            DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
-            dataSourceBuilder.url(getConnectionUrl());
-            dataSourceBuilder.username(connectionUsername);
-            dataSourceBuilder.password(connectionPassword);
-            dataSource = dataSourceBuilder.build();
+            HikariConfig hikariConfig = new HikariConfig(hikariProperties);
+            if (nonNull(getConnectionUrl())) {
+                hikariConfig.setJdbcUrl(getConnectionUrl());
+            }
+            if (nonNull(connectionUsername)) {
+                hikariConfig.setUsername(connectionUsername);
+            }
+            if (nonNull(connectionPassword)) {
+                hikariConfig.setPassword(connectionPassword);
+            }
+            dataSource = new HikariDataSource(hikariConfig);
         }
 
         return dataSource.getConnection();

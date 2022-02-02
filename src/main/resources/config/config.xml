@@ -37,6 +37,13 @@
         <table>User</table>
         <tableattr>UserAttr</tableattr>
         <procpostprocess>postprocess</procpostprocess>
+
+        <hikariproperties
+                poolName="sqlserverextPool"
+                connectionTimeout="34000"
+                maximumPoolSize="5"
+        />
+
     </sqlserverext>
 
 
@@ -57,29 +64,36 @@
         </sqlserverext>
     -->
 
+<!--
 
-    <!--
-        <sqlserver>
-            <logging>true</logging>
-            <url>jdbc:postgresql://localhost:5432/test</url>
-            <connectionusername>postgres</connectionusername>
-            <connectionpassword>F708420Dx</connectionpassword>
-            <table>Пользователи</table>
-            <fieldlogin>Логин</fieldlogin>
-            <fieldpassword>Пароль</fieldpassword>
-            <fieldblocked>Заблокированный</fieldblocked>
-            <searchreturningattributes
-                    SID="Поле objectSid"
-                    login="Логин"
-                    name="Поле name"
-                    email="Поле email"
-                    phone="Поле phone"
-                    organization = ""
-                    fax = "Поле fax"
-            />
-        </sqlserver>
-    -->
+    <sqlserver>
+        <logging>true</logging>
+        <url>jdbc:postgresql://localhost:5432/test</url>
+        <connectionusername>postgres</connectionusername>
+        <connectionpassword>F708420Dx</connectionpassword>
+        <table>Пользователи</table>
+        <fieldlogin>Логин</fieldlogin>
+        <fieldpassword>Пароль</fieldpassword>
+        <fieldblocked>Заблокированный</fieldblocked>
+        <searchreturningattributes
+                SID="Поле objectSid"
+                login="Логин"
+                name="Поле name"
+                email="Поле email"
+                phone="Поле phone"
+                organization=""
+                fax="Поле fax"
+        />
 
+        <hikariproperties
+                connectionTimeout="34000"
+                maximumPoolSize="5"
+                poolName="sqlserverext"
+        />
+
+    </sqlserver>
+
+-->
 
     <!--
             <xmlfile>

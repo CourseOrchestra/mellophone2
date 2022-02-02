@@ -1511,6 +1511,20 @@ public final class AuthManager {
             });
 
 
+            actions.put("hikariproperties", new ParserAction() {
+                @Override
+                void startElement(Attributes attributes) {
+                    for (int i = 0; i < attributes.getLength(); i++) {
+                        if (!("".equals(attributes.getValue(i).trim()))) {
+                            if (loginProviders.getLast() instanceof SQLLoginProvider) {
+                                ((SQLLoginProvider) loginProviders.getLast()).addHikariProperty(attributes.getQName(i).trim(), attributes.getValue(i).trim());
+                            } else {
+                                ((SQLExtLoginProvider) loginProviders.getLast()).addHikariProperty(attributes.getQName(i).trim(), attributes.getValue(i).trim());
+                            }
+                        }
+                    }
+                }
+            });
             actions.put("connectionusername", new ParserAction() {
                 @Override
                 void characters(String value) {
