@@ -40,7 +40,7 @@
 
         <hikariproperties
                 poolName="sqlserverextPool"
-                connectionTimeout="34000"
+                connectionTimeout="14000"
                 maximumPoolSize="5"
         />
 
