@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Math.min;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 
@@ -124,7 +125,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         searchReturningAttributes.put(name, value);
     }
 
-
     private synchronized Connection getConnection() throws SQLException {
         if (dataSource == null) {
             HikariConfig hikariConfig = new HikariConfig(hikariProperties);
@@ -134,7 +134,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             if (nonNull(connectionUsername)) {
                 hikariConfig.setUsername(connectionUsername);
             }
-            if (nonNull(connectionPassword)) {
+            if (isNull(hikariConfig.getDataSourceClassName()) && nonNull(connectionPassword)) {
                 hikariConfig.setPassword(connectionPassword);
             }
             dataSource = new HikariDataSource(hikariConfig);
@@ -142,7 +142,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
         return dataSource.getConnection();
     }
-
 
     @Override
     void connect(String sesid, String login, String password, String ip, ProviderContextHolder context, PrintWriter pw) throws EAuthServerLogic {

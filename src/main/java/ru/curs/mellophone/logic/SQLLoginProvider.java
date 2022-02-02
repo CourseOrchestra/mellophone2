@@ -26,6 +26,7 @@ import java.util.HexFormat;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 
@@ -160,7 +161,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             if (nonNull(connectionUsername)) {
                 hikariConfig.setUsername(connectionUsername);
             }
-            if (nonNull(connectionPassword)) {
+            if (isNull(hikariConfig.getDataSourceClassName()) && nonNull(connectionPassword)) {
                 hikariConfig.setPassword(connectionPassword);
             }
             dataSource = new HikariDataSource(hikariConfig);
