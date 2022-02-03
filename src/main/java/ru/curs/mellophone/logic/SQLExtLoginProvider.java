@@ -21,7 +21,6 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -32,7 +31,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -224,7 +226,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
     }
 
-    private void writeReturningAttributes(Credentials credentials, Writer writer) throws XMLStreamException, FactoryConfigurationError {
+    private void writeReturningAttributes(Credentials credentials, Writer writer) throws XMLStreamException {
         String sid = credentials.getSid();
         String login = credentials.getLogin();
 
@@ -311,26 +313,16 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
         String sql = "";
         try {
-            ((SQLLink) context).conn = getConnection();
+            String query = String.format("SELECT sid, login, null as pwd FROM \"%s\" WHERE \"login\" = ?", table);
+            List<Credentials> credentials = jdbcTemplate.query(query, new CredentialsRowMapper(), name);
 
-            sql = String.format("SELECT sid, login FROM \"%s\" WHERE \"login\" = ?", table);
-            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
-            stat.setString(1, name);
+            if (credentials.size() == 1) {
+                StringWriter sw = new StringWriter();
+                writeReturningAttributes(credentials.get(0), sw);
+                sw.flush();
+                pw.append(sw.toString());
 
-            boolean hasResult = stat.execute();
-            if (hasResult) {
-                ResultSet rs = stat.getResultSet();
-                if (rs.next()) {
-                    StringWriter sw = new StringWriter();
-                    //writeReturningAttributes(((SQLLink) context).conn, sw, rs);
-                    sw.flush();
-
-                    pw.append(sw.toString());
-
-                    rs.close();
-
-                    return;
-                }
+                return;
             }
 
             if (getLogger() != null) {
@@ -819,12 +811,9 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
      * Контекст соединения с базой данных.
      */
     private class SQLLink extends ProviderContextHolder {
-        private Connection conn = null;
-
         @Override
         void closeContext() {
         }
-
     }
 
 
