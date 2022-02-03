@@ -140,7 +140,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     @Override
     void connect(String sesid, String login, String password, String ip, ProviderContextHolder context, PrintWriter pw) throws EAuthServerLogic {
 
-        if (getLogger() != null) {
+        if (nonNull(getLogger())) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
             getLogger().info("login='" + login + "'");
         }
@@ -156,13 +156,13 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             List<Credentials> credentials = jdbcTemplate.query(query, new CredentialsRowMapper(), login);
             if (credentials.size() == 1) {
                 String pwdComplex = credentials.get(0).getPwd();
-                success = (pwdComplex != null) && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
+                success = nonNull(pwdComplex) && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
 
                 StringWriter sw = new StringWriter();
                 writeReturningAttributes(credentials.get(0), sw);
                 sw.flush();
 
-                if (procPostProcess != null) {
+                if (nonNull(procPostProcess)) {
                     PostProcessResult ppr = callProcPostProcess(sesid, login, success, sw.toString(), ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
                     success = success && ppr.isSuccess();
                     message = ppr.getMessage();
@@ -172,18 +172,18 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
                     }
                 }
 
-                if (success && (pw != null)) {
+                if (success && nonNull(pw)) {
                     pw.append(sw.toString());
                 }
 
             } else {
-                if (procPostProcess != null) {
+                if (nonNull(procPostProcess)) {
                     PostProcessResult ppr = callProcPostProcess(sesid, login, false, null, ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
                     message = ppr.getMessage();
                 }
             }
         } catch (Exception e) {
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
@@ -193,7 +193,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             message = USER_LOGIN + login + "' в '" + getConnectionUrl() + "' не успешен: " + BAD_CREDENTIALS;
         }
 
-        if (getLogger() != null) {
+        if (nonNull(getLogger())) {
             getLogger().info(message);
         }
 
@@ -283,7 +283,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     @Override
     void getUserInfoByName(ProviderContextHolder context, String name, PrintWriter pw) throws EAuthServerLogic {
 
-        if (getLogger() != null) {
+        if (nonNull(getLogger())) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
             getLogger().info("name='" + name + "'");
         }
@@ -304,12 +304,12 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
                 return;
             }
 
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().info(USER + name + "' не найден");
             }
 
         } catch (Exception e) {
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
@@ -319,7 +319,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     @Override
     void changePwd(ProviderContextHolder context, String userName, String newpwd) throws EAuthServerLogic {
 
-        if (getLogger() != null) {
+        if (nonNull(getLogger())) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
             getLogger().info("name='" + userName + "'");
         }
@@ -335,7 +335,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, "pwd", "login");
             jdbcTemplate.update(sql, password, userName);
         } catch (Exception e) {
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
@@ -345,7 +345,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
     @Override
     void importUsers(ProviderContextHolder context, PrintWriter pw, boolean needStartDocument) throws EAuthServerLogic {
-        if (getLogger() != null) {
+        if (nonNull(getLogger())) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
         }
 
@@ -376,12 +376,12 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
             xw.writeEndDocument();
             xw.flush();
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().info("Импорт пользователей успешно завершен");
             }
 
         } catch (Exception e) {
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
@@ -396,12 +396,12 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     private String getHash(String input, String alg) throws EAuthServerLogic {
 
         MessageDigest md = mdPool.get(alg);
-        if (md == null) {
+        if (isNull(md)) {
             try {
                 md = MessageDigest.getInstance(alg);
                 mdPool.putIfAbsent(alg, md);
             } catch (NoSuchAlgorithmException e) {
-                if (getLogger() != null) {
+                if (nonNull(getLogger())) {
                     getLogger().error(e.getMessage());
                 }
                 throw EAuthServerLogic.create("Алгоритм хеширования " + alg + " не доступен");
@@ -487,7 +487,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             attrs.put(key, value);
         }
 
-        if (sid == null) {
+        if (isNull(sid)) {
             throw EAuthServerLogic.create("Атрибут пользователя sid не задан");
         }
 
@@ -495,8 +495,8 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         String sql = null;
         TransactionStatus ts = dataSourceTransactionManager.getTransaction(new DefaultTransactionDefinition());
         try {
-            String fields = "sid" + (login != null ? ", login" : "") + (pwd != null ? ", pwd" : "");
-            String values = ":sid" + (login != null ? ", :login" : "") + (pwd != null ? ", :pwd" : "");
+            String fields = "sid" + (nonNull(login) ? ", login" : "") + (nonNull(pwd) ? ", pwd" : "");
+            String values = ":sid" + (nonNull(login) ? ", :login" : "") + (nonNull(pwd) ? ", :pwd" : "");
             sql = "INSERT INTO \"" + table + "\" (" + fields + ") VALUES (" + values + ")";
             MapSqlParameterSource in = new MapSqlParameterSource();
             in.addValue("sid", sid, Types.VARCHAR);
@@ -515,7 +515,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         } catch (Exception e) {
             dataSourceTransactionManager.rollback(ts);
 
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
@@ -563,22 +563,22 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         String sql = null;
         TransactionStatus ts = dataSourceTransactionManager.getTransaction(new DefaultTransactionDefinition());
         try {
-            if (!((login == null) && (pwd == null))) {
+            if (!(isNull(login) && isNull(pwd))) {
                 String fields = "";
-                if (login != null) {
+                if (nonNull(login)) {
                     fields = "login = ?";
                 }
-                if (pwd != null) {
+                if (nonNull(pwd)) {
                     fields = fields + (!fields.isEmpty() ? ", " : "") + "pwd = ?";
                 }
 
                 sql = "UPDATE \"" + table + "\" SET " + fields + " WHERE sid = ?";
 
                 ArrayList<String> params = new ArrayList<>();
-                if (login != null) {
+                if (nonNull(login)) {
                     params.add(login);
                 }
-                if (pwd != null) {
+                if (nonNull(pwd)) {
                     params.add(pwd);
                 }
                 params.add(sidIdent);
@@ -594,7 +594,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         } catch (Exception e) {
             dataSourceTransactionManager.rollback(ts);
 
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
@@ -625,7 +625,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         } catch (Exception e) {
             dataSourceTransactionManager.rollback(ts);
 
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
