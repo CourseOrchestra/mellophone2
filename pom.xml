@@ -21,7 +21,7 @@
         <json.version>20211205</json.version>
         <postgresql.version>42.3.2</postgresql.version>
         <mssql-jdbc.version>10.2.0.jre17</mssql-jdbc.version>
-        <ojdbc11.version>21.4.0.0</ojdbc11.version>
+        <ojdbc11.version>21.5.0.0</ojdbc11.version>
     </properties>
 
     <dependencyManagement>
