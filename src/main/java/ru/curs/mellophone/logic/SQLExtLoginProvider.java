@@ -15,7 +15,6 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.crypto.SecretKey;
@@ -26,12 +25,15 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
-import java.io.*;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -52,32 +54,26 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     private static final String USER_LOGIN = "Логин пользователя '";
     private static final String ERROR_SQL_SERVER = "Ошибка при работе с базой '%s': %s. Запрос: '%s'";
 
-    private static final String USER_IS_BLOCKED_PERMANENTLY = "User %s is blocked permanently.";
-
     private static final String PASSWORD_DIVIDER = "#";
 
     private static final String PBKDF2 = "pbkdf2";
     private static final String PBKDF2_PASSWORD_DIVIDER = "\\$";
     private static final String PBKDF2_ALG_DIVIDER = ":";
 
-    private static ConcurrentHashMap<String, MessageDigest> mdPool = new ConcurrentHashMap<String, MessageDigest>(4);
-    private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
+    private static final ConcurrentHashMap<String, MessageDigest> mdPool = new ConcurrentHashMap<>(4);
+    private final Properties hikariProperties = new Properties();
     private JdbcTemplate jdbcTemplate;
-    private Properties hikariProperties = new Properties();
     private DataSourceTransactionManager dataSourceTransactionManager;
-    private String fieldLogin = "login";
-    private String fieldPassword = "pwd";
     private String connectionUsername;
     private String connectionPassword;
     private String table = null;
     private String tableAttr;
-    private String fieldBlocked = null;
     private String hashAlgorithm = "SHA-256";
     private String localSecuritySalt = "";
     private String procPostProcess = null;
 
     private static void checkForPossibleSQLInjection(String sql, String errMsg) throws EAuthServerLogic {
-        if (sql.indexOf(" ") > -1) throw EAuthServerLogic.create(errMsg);
+        if (sql.contains(" ")) throw EAuthServerLogic.create(errMsg);
     }
 
     @Override
@@ -85,6 +81,11 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         if (isLogging) {
             setLogger(LoggerFactory.getLogger(SQLExtLoginProvider.class));
         }
+    }
+
+    @Override
+    void addReturningAttributes(String name, String value) {
+
     }
 
     void addHikariProperty(String name, String value) {
@@ -107,18 +108,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         this.tableAttr = tableAttr.replace(".", "\".\"");
     }
 
-    void setFieldLogin(String fieldLogin) {
-        this.fieldLogin = fieldLogin;
-    }
-
-    void setFieldPassword(String fieldPassword) {
-        this.fieldPassword = fieldPassword;
-    }
-
-    void setFieldBlocked(String fieldBlocked) {
-        this.fieldBlocked = fieldBlocked;
-    }
-
     void setHashAlgorithm(String hashAlgorithm) {
         this.hashAlgorithm = hashAlgorithm;
     }
@@ -129,15 +118,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
     void setProcPostProcess(String procPostProcess) {
         this.procPostProcess = procPostProcess;
-    }
-
-    @Override
-    void addReturningAttributes(String name, String value) {
-        searchReturningAttributes.put(name, value);
-    }
-
-    private synchronized Connection getConnection() throws SQLException {
-        return null;
     }
 
     @Override
@@ -154,7 +134,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         }
         HikariDataSource dataSource = new HikariDataSource(hikariConfig);
         jdbcTemplate = new JdbcTemplate(dataSource);
-
         dataSourceTransactionManager = new DataSourceTransactionManager(dataSource);
     }
 
@@ -253,7 +232,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         xw.flush();
     }
 
-    public PostProcessResult callProcPostProcess(String sesid, String login, boolean isauth, String attributes, String ip, boolean islocked, int attemptsCount, long timeToUnlock) throws SQLException {
+    public PostProcessResult callProcPostProcess(String sesid, String login, boolean isauth, String attributes, String ip, boolean islocked, int attemptsCount, long timeToUnlock) {
 
         SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate).withProcedureName(procPostProcess).declareParameters(new SqlOutParameter("ret", Types.INTEGER), new SqlOutParameter("message", Types.VARCHAR));
 
@@ -265,7 +244,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
     }
 
-    private boolean checkPasswordHash(String pwdComplex, String password) throws UnsupportedEncodingException, EAuthServerLogic {
+    private boolean checkPasswordHash(String pwdComplex, String password) throws EAuthServerLogic {
 
         if (PBKDF2.equalsIgnoreCase(pwdComplex.substring(0, min(pwdComplex.length(), PBKDF2.length())))) {
             String[] pwdParts = pwdComplex.split(PBKDF2_PASSWORD_DIVIDER);
@@ -353,7 +332,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             String salt = String.format("%016x", r.nextLong()) + String.format("%016x", r.nextLong());
             String password = getHashAlgorithm1(hashAlgorithm) + PASSWORD_DIVIDER + salt + PASSWORD_DIVIDER + getHash(newpwd + salt + localSecuritySalt, hashAlgorithm);
 
-            sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, fieldPassword, fieldLogin);
+            sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, "pwd", "login");
             jdbcTemplate.update(sql, password, userName);
         } catch (Exception e) {
             if (getLogger() != null) {
@@ -414,23 +393,13 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         return new SQLLink();
     }
 
-    /**
-     * Возвращает значение функции SHA-1 для строки символов в виде 16-ричного
-     * числа, в точности как реализовано в клиентском JavaScript. Необходимо для
-     * контроля логинов и паролей
-     *
-     * @throws UnsupportedEncodingException
-     * @throws EAuthServerLogic
-     */
-    private String getHash(String input, String alg) throws UnsupportedEncodingException, EAuthServerLogic {
+    private String getHash(String input, String alg) throws EAuthServerLogic {
 
         MessageDigest md = mdPool.get(alg);
         if (md == null) {
             try {
                 md = MessageDigest.getInstance(alg);
-                if (mdPool.get(alg) == null) {
-                    mdPool.put(alg, md);
-                }
+                mdPool.putIfAbsent(alg, md);
             } catch (NoSuchAlgorithmException e) {
                 if (getLogger() != null) {
                     getLogger().error(e.getMessage());
@@ -439,11 +408,9 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             }
         }
 
-        synchronized (md) {
-            md.reset();
-            md.update(input.getBytes("UTF-8"));
-            return asHex(md.digest());
-        }
+        md.reset();
+        md.update(input.getBytes(StandardCharsets.UTF_8));
+        return asHex(md.digest());
 
     }
 
@@ -456,8 +423,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             byte[] hashedBytes = key.getEncoded();
             //String res = "Hex.encodeHexString(hashedBytes)";
             HexFormat commaFormat = HexFormat.of();
-            String res = commaFormat.formatHex(hashedBytes);
-            return res;
+            return commaFormat.formatHex(hashedBytes);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw EAuthServerLogic.create(e);
         }
@@ -473,10 +439,10 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
     private Map<String, String> getUserAttrs(InputStream user) throws EAuthServerLogic {
         class UserParser extends DefaultHandler {
-            Map<String, String> out = new HashMap<String, String>();
+            final Map<String, String> out = new HashMap<>();
 
             @Override
-            public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+            public void startElement(String uri, String localName, String qName, Attributes attributes) {
                 for (int i = 0; i < attributes.getLength(); i++) {
                     out.put(attributes.getQName(i), attributes.getValue(i));
                 }
@@ -500,7 +466,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         String sid = null;
         String login = null;
         String pwd = null;
-        Map<String, String> attrs = new HashMap<String, String>();
+        Map<String, String> attrs = new HashMap<>();
 
         for (Map.Entry<String, String> pair : attrsAll.entrySet()) {
             String key = pair.getKey();
@@ -543,9 +509,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             (new NamedParameterJdbcTemplate(jdbcTemplate)).update(sql, in);
 
             String finalSid = sid;
-            attrs.forEach((k, v) -> {
-                jdbcTemplate.update("INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)", finalSid, k, v);
-            });
+            attrs.forEach((k, v) -> jdbcTemplate.update("INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)", finalSid, k, v));
 
             dataSourceTransactionManager.commit(ts);
         } catch (Exception e) {
@@ -565,7 +529,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         String sid = null;
         String login = null;
         String pwd = null;
-        Map<String, String> attrs = new HashMap<String, String>();
+        Map<String, String> attrs = new HashMap<>();
 
         for (Map.Entry<String, String> pair : attrsAll.entrySet()) {
             String key = pair.getKey();
@@ -610,7 +574,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
                 sql = "UPDATE \"" + table + "\" SET " + fields + " WHERE sid = ?";
 
-                ArrayList<String> params = new ArrayList<String>();
+                ArrayList<String> params = new ArrayList<>();
                 if (login != null) {
                     params.add(login);
                 }
@@ -622,9 +586,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
                 jdbcTemplate.update(sql, params.toArray());
             }
 
-            attrs.forEach((k, v) -> {
-                jdbcTemplate.update("INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)" + " ON CONFLICT (sid, fieldid) DO UPDATE SET fieldvalue = ? WHERE (\"" + tableAttr + "\".sid=?) AND (\"" + tableAttr + "\".fieldid=?)", sidIdent, k, v, v, sidIdent, k);
-            });
+            attrs.forEach((k, v) -> jdbcTemplate.update("INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)" + " ON CONFLICT (sid, fieldid) DO UPDATE SET fieldvalue = ? WHERE (\"" + tableAttr + "\".sid=?) AND (\"" + tableAttr + "\".fieldid=?)", sidIdent, k, v, v, sidIdent, k));
 
             dataSourceTransactionManager.commit(ts);
 
@@ -810,7 +772,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     /**
      * Контекст соединения с базой данных.
      */
-    private class SQLLink extends ProviderContextHolder {
+    private static class SQLLink extends ProviderContextHolder {
         @Override
         void closeContext() {
         }
