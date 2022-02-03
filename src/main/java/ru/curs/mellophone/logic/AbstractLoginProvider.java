@@ -13,199 +13,178 @@ import java.util.ArrayList;
  */
 abstract class AbstractLoginProvider {
 
-	protected static final String AUTH_SERVER_NAMESPACE = "http://www.curs.ru/ns/AuthServer";
+    protected static final String AUTH_SERVER_NAMESPACE = "http://www.curs.ru/ns/AuthServer";
 
-	protected static final String BAD_CREDENTIALS = "Неправильная пара логин/пароль";
+    protected static final String BAD_CREDENTIALS = "Неправильная пара логин/пароль";
 
-	private static final int F0 = 0xF0;
+    private static final int F0 = 0xF0;
 
-	private static final char[] HEX_CHARS = "0123456789abcdef".toCharArray();
+    private static final char[] HEX_CHARS = "0123456789abcdef".toCharArray();
 
-	/**
-	 * Logger.
-	 */
-	private Logger logger = null;
+    /**
+     * Logger.
+     */
+    private Logger logger = null;
 
-	private String url;
-	
-	private String type;
+    private String url;
 
-	private String groupProviders = "";
-	
-	private String id = "";
-	
-	private ArrayList<String> trustedUsers = null;
+    private String type;
 
-	static void writeXMLAttr(XMLStreamWriter xw, String attrName, String value)
-			throws XMLStreamException {
-		if (value != null)
-			xw.writeAttribute(attrName, value);
-	}
+    private String groupProviders = "";
 
-	static String asHex(byte[] buf) {
-		char[] chars = new char[2 * buf.length];
-		for (int i = 0; i < buf.length; ++i) {
-			chars[2 * i] = HEX_CHARS[(buf[i] & F0) >>> 4];
-			chars[2 * i + 1] = HEX_CHARS[buf[i] & 0x0F];
-		}
-		return new String(chars);
-	}
+    private String id = "";
 
-	/**
-	 * Инициализирует Logger для логирования данного провайдера.
-	 */
-	abstract void setupLogger(boolean isLogging);
+    private ArrayList<String> trustedUsers = null;
 
-	/**
-	 * Устанавливает Logger.
-	 */
-	void setLogger(Logger logger) {
-		this.logger = logger;
-	}
+    static void writeXMLAttr(XMLStreamWriter xw, String attrName, String value) throws XMLStreamException {
+        if (value != null) xw.writeAttribute(attrName, value);
+    }
 
-	/**
-	 * Возвращает Logger.
-	 */
-	Logger getLogger() {
-		return logger;
-	}
+    static String asHex(byte[] buf) {
+        char[] chars = new char[2 * buf.length];
+        for (int i = 0; i < buf.length; ++i) {
+            chars[2 * i] = HEX_CHARS[(buf[i] & F0) >>> 4];
+            chars[2 * i + 1] = HEX_CHARS[buf[i] & 0x0F];
+        }
+        return new String(chars);
+    }
 
-	/**
-	 * Устанавливает строку подключения к провайдеру логинов. Это может быть
-	 * адрес LDAP-сервера или путь к XML-файлу.
-	 */
-	void setConnectionUrl(String url) {
-		this.url = url;
-	}
+    /**
+     * Инициализирует Logger для логирования данного провайдера.
+     */
+    abstract void setupLogger(boolean isLogging);
 
-	/**
-	 * Возвращает строку подключения к провайдеру логинов. Это может быть адрес
-	 * LDAP-сервера или путь к XML-файлу.
-	 */
-	String getConnectionUrl() {
-		return url;
-	}
+    /**
+     * Возвращает Logger.
+     */
+    Logger getLogger() {
+        return logger;
+    }
 
-	abstract void addReturningAttributes(String name, String value);
+    /**
+     * Устанавливает Logger.
+     */
+    void setLogger(Logger logger) {
+        this.logger = logger;
+    }
 
-	/**
-	 * Устанавливает соединение с провайдером логинов.
-	 * 
-	 * @param sesid
-	 *            Идентификатор сессии приложения.
-	 * @param login
-	 *            Сообщеннный пользователем логин.
-	 * @param password
-	 *            Сообщенный пользователем пароль.
-	 * @param context
-	 *            Возвращаемый контекст соединения.
-	 * @param pw
-	 *            куда выводить информацию о пользователе
-	 * @throws EAuthServerLogic
-	 *             в случае, если соединение не удалось.
-	 */
-	abstract void connect(String sesid, String login, String password, String ip,
-			ProviderContextHolder context, PrintWriter pw)
-			throws EAuthServerLogic;
+    /**
+     * Возвращает строку подключения к провайдеру логинов. Это может быть адрес
+     * LDAP-сервера или путь к XML-файлу.
+     */
+    String getConnectionUrl() {
+        return url;
+    }
 
-	/**
-	 * Возвращает информацию о пользователе по имени пользователя.
-	 * 
-	 * @param context
-	 *            Контекст соединения с провайдером логинов.
-	 * @param name
-	 *            имя пользователя
-	 * @param pw
-	 *            куда выводить информацию о пользователе
-	 * @throws EAuthServerLogic
-	 *             в случае, если получить информацию не удалось
-	 */
-	abstract void getUserInfoByName(ProviderContextHolder context, String name,
-			PrintWriter pw) throws EAuthServerLogic;
+    /**
+     * Устанавливает строку подключения к провайдеру логинов. Это может быть
+     * адрес LDAP-сервера или путь к XML-файлу.
+     */
+    void setConnectionUrl(String url) {
+        this.url = url;
+    }
 
-	/**
-	 * Осуществляет импорт пользователей.
-	 * 
-	 * @param context
-	 *            Контекст соединения с провайдером.
-	 * @param pw
-	 *            куда выводить информацию.
-	 * @throws EAuthServerLogic
-	 *             в случае, если операция не удалась.
-	 */
-	abstract void importUsers(ProviderContextHolder context, PrintWriter pw, boolean needStartDocument)
-			throws EAuthServerLogic;
+    abstract void addReturningAttributes(String name, String value);
 
-	/**
-	 * Осуществляет сброс / установку нового пароля пользователя.
-	 * 
-	 * @param context
-	 *            Контекст соединения с провайдером.
-	 * @param userName
-	 *            Имя пользователя.
-	 * @param newpwd
-	 *            Новый пароль пользователя.
-	 * @throws EAuthServerLogic
-	 *             в случае, если операция не удалась.
-	 */
-	abstract void changePwd(ProviderContextHolder context, String userName,
-			String newpwd) throws EAuthServerLogic;
+    /**
+     * Устанавливает соединение с провайдером логинов.
+     *
+     * @param sesid    Идентификатор сессии приложения.
+     * @param login    Сообщеннный пользователем логин.
+     * @param password Сообщенный пользователем пароль.
+     * @param context  Возвращаемый контекст соединения.
+     * @param pw       куда выводить информацию о пользователе
+     * @throws EAuthServerLogic в случае, если соединение не удалось.
+     */
+    abstract void connect(String sesid, String login, String password, String ip, ProviderContextHolder context, PrintWriter pw) throws EAuthServerLogic;
 
-	/**
-	 * Создаёт контекст соединения с провайдером.
-	 */
-	abstract ProviderContextHolder newContextHolder();
+    /**
+     * Возвращает информацию о пользователе по имени пользователя.
+     *
+     * @param context Контекст соединения с провайдером логинов.
+     * @param name    имя пользователя
+     * @param pw      куда выводить информацию о пользователе
+     * @throws EAuthServerLogic в случае, если получить информацию не удалось
+     */
+    abstract void getUserInfoByName(ProviderContextHolder context, String name, PrintWriter pw) throws EAuthServerLogic;
 
-	/**
-	 * Устанавливает группу, к которой относится данный провайдер.
-	 * 
-	 * @param value
-	 */
-	public void setGroupProviders(String value) {
-		groupProviders = value;
-	}
+    /**
+     * Осуществляет импорт пользователей.
+     *
+     * @param context Контекст соединения с провайдером.
+     * @param pw      куда выводить информацию.
+     * @throws EAuthServerLogic в случае, если операция не удалась.
+     */
+    abstract void importUsers(ProviderContextHolder context, PrintWriter pw, boolean needStartDocument) throws EAuthServerLogic;
 
-	/**
-	 * Возвращает группу, к которой относится данный провайдер.
-	 */
-	public String getGroupProviders() {
-		return groupProviders;
-	}
+    /**
+     * Осуществляет сброс / установку нового пароля пользователя.
+     *
+     * @param context  Контекст соединения с провайдером.
+     * @param userName Имя пользователя.
+     * @param newpwd   Новый пароль пользователя.
+     * @throws EAuthServerLogic в случае, если операция не удалась.
+     */
+    abstract void changePwd(ProviderContextHolder context, String userName, String newpwd) throws EAuthServerLogic;
 
-	public String getType() {
-		return type;
-	}
+    /**
+     * Создаёт контекст соединения с провайдером.
+     */
+    abstract ProviderContextHolder newContextHolder();
 
-	public void setType(String aType) {
-		type = aType;
-	}
+    /**
+     * Возвращает группу, к которой относится данный провайдер.
+     */
+    public String getGroupProviders() {
+        return groupProviders;
+    }
 
-	public String getId() {
-		return id;
-	}
+    /**
+     * Устанавливает группу, к которой относится данный провайдер.
+     *
+     * @param value
+     */
+    public void setGroupProviders(String value) {
+        groupProviders = value;
+    }
 
-	public void setId(String aId) {
-		id = aId;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public ArrayList<String> getTrustedUsers() {
-		return trustedUsers;
-	}
+    public void setType(String aType) {
+        type = aType;
+    }
 
-	public void setTrustedUsers(ArrayList<String> aTrustedUsers) {
-		trustedUsers = aTrustedUsers;
-	}
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String aId) {
+        id = aId;
+    }
+
+    public ArrayList<String> getTrustedUsers() {
+        return trustedUsers;
+    }
+
+    public void setTrustedUsers(ArrayList<String> aTrustedUsers) {
+        trustedUsers = aTrustedUsers;
+    }
+
+    public void initialize() {
+    }
+
 
 }
 
 /**
  * Класс-хранитель контекста соединения с провайдером логинов.
- * 
  */
 abstract class ProviderContextHolder {
-	/**
-	 * Финализирует контекст соединения. Данный метод вызывается всякий раз
-	 * после использования контекста.
-	 */
-	abstract void closeContext();
+    /**
+     * Финализирует контекст соединения. Данный метод вызывается всякий раз
+     * после использования контекста.
+     */
+    abstract void closeContext();
 }

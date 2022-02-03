@@ -3,6 +3,17 @@ package ru.curs.mellophone.logic;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -22,10 +33,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.HexFormat;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Math.min;
@@ -52,13 +60,14 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
     private static ConcurrentHashMap<String, MessageDigest> mdPool = new ConcurrentHashMap<String, MessageDigest>(4);
     private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
-    private HikariDataSource dataSource = null;
+    private JdbcTemplate jdbcTemplate;
     private Properties hikariProperties = new Properties();
+    private DataSourceTransactionManager dataSourceTransactionManager;
     private String fieldLogin = "login";
     private String fieldPassword = "pwd";
     private String connectionUsername;
     private String connectionPassword;
-    private String table;
+    private String table = null;
     private String tableAttr;
     private String fieldBlocked = null;
     private String hashAlgorithm = "SHA-256";
@@ -126,21 +135,25 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
     }
 
     private synchronized Connection getConnection() throws SQLException {
-        if (dataSource == null) {
-            HikariConfig hikariConfig = new HikariConfig(hikariProperties);
-            if (nonNull(getConnectionUrl())) {
-                hikariConfig.setJdbcUrl(getConnectionUrl());
-            }
-            if (nonNull(connectionUsername)) {
-                hikariConfig.setUsername(connectionUsername);
-            }
-            if (isNull(hikariConfig.getDataSourceClassName()) && nonNull(connectionPassword)) {
-                hikariConfig.setPassword(connectionPassword);
-            }
-            dataSource = new HikariDataSource(hikariConfig);
-        }
+        return null;
+    }
 
-        return dataSource.getConnection();
+    @Override
+    public void initialize() {
+        HikariConfig hikariConfig = new HikariConfig(hikariProperties);
+        if (nonNull(getConnectionUrl())) {
+            hikariConfig.setJdbcUrl(getConnectionUrl());
+        }
+        if (nonNull(connectionUsername)) {
+            hikariConfig.setUsername(connectionUsername);
+        }
+        if (isNull(hikariConfig.getDataSourceClassName()) && nonNull(connectionPassword)) {
+            hikariConfig.setPassword(connectionPassword);
+        }
+        HikariDataSource dataSource = new HikariDataSource(hikariConfig);
+        jdbcTemplate = new JdbcTemplate(dataSource);
+
+        dataSourceTransactionManager = new DataSourceTransactionManager(dataSource);
     }
 
     @Override
@@ -158,69 +171,34 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         String sql = "";
         BadLoginType blt = BadLoginType.BAD_CREDENTIALS;
         try {
+            String query = String.format("SELECT sid, login, pwd FROM \"%s\" WHERE \"login\" = ?", table);
+            List<Credentials> credentials = jdbcTemplate.query(query, new CredentialsRowMapper(), login);
+            if (credentials.size() == 1) {
+                String pwdComplex = credentials.get(0).getPwd();
+                success = (pwdComplex != null) && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
 
-            ((SQLLink) context).conn = getConnection();
+                StringWriter sw = new StringWriter();
+                writeReturningAttributes(credentials.get(0), sw);
+                sw.flush();
 
-            sql = String.format("SELECT sid, login, pwd FROM \"%s\" WHERE \"login\" = ?", table);
-
-            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
-
-            stat.setString(1, login);
-
-            boolean hasResult = stat.execute();
-            if (hasResult) {
-                ResultSet rs = stat.getResultSet();
-                if (rs.next()) {
-
-                    if ((procPostProcess == null) && (fieldBlocked != null)) {
-                        if (rs.getBoolean(fieldBlocked)) {
-                            success = false;
-                            message = String.format(USER_IS_BLOCKED_PERMANENTLY, login);
-                            blt = BadLoginType.USER_BLOCKED_PERMANENTLY;
-                        }
-                    }
-
-                    if (blt != BadLoginType.USER_BLOCKED_PERMANENTLY) {
-
-                        String pwdComplex = rs.getString(fieldPassword);
-                        success = (pwdComplex != null) && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
-
-                        StringWriter sw = new StringWriter();
-                        writeReturningAttributes(((SQLLink) context).conn, sw, rs);
-                        sw.flush();
-
-                        rs.close();
-
-                        if (procPostProcess != null) {
-
-                            PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, success, sw.toString(), ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
-                            success = success && ppr.isSuccess();
-                            message = ppr.getMessage();
-
-                        } else {
-                            if (success) {
-                                message = USER_LOGIN + login + "' в '" + getConnectionUrl() + "' успешен!";
-                            }
-                        }
-
-
-                        if (success && (pw != null)) {
-                            //writeReturningAttributes(pw, rs);
-                            pw.append(sw.toString());
-                        }
-
-                    }
-
+                if (procPostProcess != null) {
+                    PostProcessResult ppr = callProcPostProcess(sesid, login, success, sw.toString(), ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
+                    success = success && ppr.isSuccess();
+                    message = ppr.getMessage();
                 } else {
-
-                    if (procPostProcess != null) {
-
-                        PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, false, null, ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
-
-                        message = ppr.getMessage();
-
+                    if (success) {
+                        message = USER_LOGIN + login + "' в '" + getConnectionUrl() + "' успешен!";
                     }
+                }
 
+                if (success && (pw != null)) {
+                    pw.append(sw.toString());
+                }
+
+            } else {
+                if (procPostProcess != null) {
+                    PostProcessResult ppr = callProcPostProcess(sesid, login, false, null, ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
+                    message = ppr.getMessage();
                 }
             }
         } catch (Exception e) {
@@ -246,12 +224,9 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
     }
 
-    private void writeReturningAttributes(Connection conn, Writer writer, ResultSet rs) throws XMLStreamException, FactoryConfigurationError, SQLException {
-
-        String sid = rs.getString("sid");
-        String login = rs.getString("login");
-
-        rs.close();
+    private void writeReturningAttributes(Credentials credentials, Writer writer) throws XMLStreamException, FactoryConfigurationError {
+        String sid = credentials.getSid();
+        String login = credentials.getLogin();
 
         XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
         xw.writeStartDocument("utf-8", "1.0");
@@ -261,42 +236,30 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         writeXMLAttr(xw, "login", login);
 
         String sql = String.format("SELECT * FROM \"%s\" WHERE \"sid\" = ?", tableAttr);
-        PreparedStatement stat = conn.prepareStatement(sql);
-        stat.setString(1, sid);
-        boolean hasResult = stat.execute();
-        if (hasResult) {
-            ResultSet rsAttr = stat.getResultSet();
-            while (rsAttr.next()) {
-                writeXMLAttr(xw, rsAttr.getString("fieldid"), rsAttr.getString("fieldvalue"));
+        List<Attrs> attrs = jdbcTemplate.query(sql, new AttrsRowMapper(), sid);
+
+        attrs.forEach(attr -> {
+            try {
+                writeXMLAttr(xw, attr.getFieldid(), attr.getFieldvalue());
+            } catch (XMLStreamException e) {
+                e.printStackTrace();
+                throw EAuthServerLogic.create(e);
             }
-        }
+        });
 
         xw.writeEndDocument();
         xw.flush();
     }
 
-    public PostProcessResult callProcPostProcess(Connection conn, String sesid, String login, boolean isauth, String attributes, String ip, boolean islocked, int attemptsCount, long timeToUnlock) throws SQLException {
+    public PostProcessResult callProcPostProcess(String sesid, String login, boolean isauth, String attributes, String ip, boolean islocked, int attemptsCount, long timeToUnlock) throws SQLException {
 
-        if (conn == null) {
-            conn = getConnection();
-        }
+        SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate).withProcedureName(procPostProcess).declareParameters(new SqlOutParameter("ret", Types.INTEGER), new SqlOutParameter("message", Types.VARCHAR));
 
-        CallableStatement cs = conn.prepareCall(String.format("{? = call %s (?, ?, ?, ?, ?, ?, ?, ?, ?)}", procPostProcess));
+        SqlParameterSource in = new MapSqlParameterSource().addValue("sesid", sesid).addValue("userlogin", login).addValue("userauth", isauth).addValue("userattributes", attributes).addValue("userip", ip).addValue("userlocked", islocked).addValue("userloginattempts", attemptsCount).addValue("usertimetounlock", timeToUnlock);
 
-        cs.registerOutParameter(1, Types.INTEGER);
-        cs.setString(2, sesid);
-        cs.setString(3, login);
-        cs.setBoolean(4, isauth);
-        cs.setString(5, attributes);
-        cs.setString(6, ip);
-        cs.setBoolean(7, islocked);
-        cs.setInt(8, attemptsCount);
-        cs.setLong(9, timeToUnlock);
-        cs.registerOutParameter(10, Types.VARCHAR);
+        Map<String, Object> out = simpleJdbcCall.execute(in);
 
-        cs.execute();
-
-        return new PostProcessResult(cs.getInt(1) == 0, "Stored procedure message begin: " + cs.getString(10) + " Stored procedure message end.");
+        return new PostProcessResult(((int) out.get("ret")) == 0, "Stored procedure message begin: " + out.get("message") + " Stored procedure message end.");
 
     }
 
@@ -359,7 +322,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
                 ResultSet rs = stat.getResultSet();
                 if (rs.next()) {
                     StringWriter sw = new StringWriter();
-                    writeReturningAttributes(((SQLLink) context).conn, sw, rs);
+                    //writeReturningAttributes(((SQLLink) context).conn, sw, rs);
                     sw.flush();
 
                     pw.append(sw.toString());
@@ -394,24 +357,12 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
         String sql = "";
         try {
-            ((SQLLink) context).conn = getConnection();
-
-            sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, fieldPassword, fieldLogin);
-
-            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
-
-
             SecureRandom r = new SecureRandom();
             String salt = String.format("%016x", r.nextLong()) + String.format("%016x", r.nextLong());
-
             String password = getHashAlgorithm1(hashAlgorithm) + PASSWORD_DIVIDER + salt + PASSWORD_DIVIDER + getHash(newpwd + salt + localSecuritySalt, hashAlgorithm);
 
-
-            stat.setString(1, password);
-            stat.setString(2, userName);
-
-            stat.execute();
-
+            sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, fieldPassword, fieldLogin);
+            jdbcTemplate.update(sql, password, userName);
         } catch (Exception e) {
             if (getLogger() != null) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
@@ -420,7 +371,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         }
 
     }
-
 
     @Override
     void importUsers(ProviderContextHolder context, PrintWriter pw, boolean needStartDocument) throws EAuthServerLogic {
@@ -437,33 +387,28 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             xw.writeStartElement("users");
             writeXMLAttr(xw, "pid", getId());
 
-            ((SQLLink) context).conn = getConnection();
             sql = String.format("SELECT a.sid, a.login, b.fieldid, b.fieldvalue FROM \"%s\" a LEFT OUTER JOIN \"%s\" b ON a.sid = b.sid ORDER BY a.sid", table, tableAttr);
-            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
+            List<AttrsExt> attrs = jdbcTemplate.query(sql, new AttrsExtRowMapper());
 
-            boolean hasResult = stat.execute();
-            if (hasResult) {
-                ResultSet rs = stat.getResultSet();
-                String sid = "";
-                while (rs.next()) {
-                    if (!sid.equals(rs.getString("sid"))) {
-                        xw.writeEmptyElement("user");
-                        writeXMLAttr(xw, "sid", rs.getString("sid"));
-                        writeXMLAttr(xw, "login", rs.getString("login"));
-                        sid = rs.getString("sid");
-                    }
-                    if (rs.getString("fieldid") != null) {
-                        writeXMLAttr(xw, rs.getString("fieldid"), rs.getString("fieldvalue"));
-                    }
+            String sid = "";
+            for (AttrsExt attr : attrs) {
+                if (!sid.equals(attr.getSid())) {
+                    xw.writeEmptyElement("user");
+                    writeXMLAttr(xw, "sid", attr.getSid());
+                    writeXMLAttr(xw, "login", attr.getLogin());
+                    sid = attr.getSid();
                 }
-                rs.close();
-
-                xw.writeEndDocument();
-                xw.flush();
-                if (getLogger() != null) {
-                    getLogger().info("Импорт пользователей успешно завершен");
+                if (nonNull(attr.getFieldid())) {
+                    writeXMLAttr(xw, attr.getFieldid(), attr.getFieldvalue());
                 }
             }
+
+            xw.writeEndDocument();
+            xw.flush();
+            if (getLogger() != null) {
+                getLogger().info("Импорт пользователей успешно завершен");
+            }
+
         } catch (Exception e) {
             if (getLogger() != null) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
@@ -471,7 +416,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             throw EAuthServerLogic.create(e);
         }
     }
-
 
     @Override
     ProviderContextHolder newContextHolder() {
@@ -535,7 +479,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         return input.toUpperCase().replace("SHA", "SHA-");
     }
 
-
     private Map<String, String> getUserAttrs(InputStream user) throws EAuthServerLogic {
         class UserParser extends DefaultHandler {
             Map<String, String> out = new HashMap<String, String>();
@@ -557,6 +500,7 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
         return p.out;
     }
+
 
     public void userCreate(InputStream user) throws EAuthServerLogic {
         Map<String, String> attrsAll = getUserAttrs(user);
@@ -590,56 +534,35 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         }
 
 
-        SQLLink context = new SQLLink();
         String sql = null;
+        TransactionStatus ts = dataSourceTransactionManager.getTransaction(new DefaultTransactionDefinition());
         try {
-            context.conn = getConnection();
-            context.conn.setAutoCommit(false);
-
             String fields = "sid" + (login != null ? ", login" : "") + (pwd != null ? ", pwd" : "");
-            String values = "?" + (login != null ? ", ?" : "") + (pwd != null ? ", ?" : "");
+            String values = ":sid" + (login != null ? ", :login" : "") + (pwd != null ? ", :pwd" : "");
             sql = "INSERT INTO \"" + table + "\" (" + fields + ") VALUES (" + values + ")";
-
-            PreparedStatement stat = context.conn.prepareStatement(sql);
-
-            int i = 1;
-            stat.setString(i, sid);
-            if (login != null) {
-                i++;
-                stat.setString(i, login);
+            MapSqlParameterSource in = new MapSqlParameterSource();
+            in.addValue("sid", sid, Types.VARCHAR);
+            if (nonNull(login)) {
+                in.addValue("login", login, Types.VARCHAR);
             }
-            if (pwd != null) {
-                i++;
-                stat.setString(i, pwd);
+            if (nonNull(pwd)) {
+                in.addValue("pwd", pwd, Types.VARCHAR);
             }
+            (new NamedParameterJdbcTemplate(jdbcTemplate)).update(sql, in);
 
-            stat.execute();
+            String finalSid = sid;
+            attrs.forEach((k, v) -> {
+                jdbcTemplate.update("INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)", finalSid, k, v);
+            });
 
-
-            if (attrs.size() > 0) {
-                sql = "INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)";
-                stat = context.conn.prepareStatement(sql);
-                for (Map.Entry<String, String> pair : attrs.entrySet()) {
-                    stat.setString(1, sid);
-                    stat.setString(2, pair.getKey());
-                    stat.setString(3, pair.getValue());
-                    stat.execute();
-                }
-            }
-
-            context.conn.commit();
+            dataSourceTransactionManager.commit(ts);
         } catch (Exception e) {
-            try {
-                context.conn.rollback();
-            } catch (SQLException e2) {
-            }
+            dataSourceTransactionManager.rollback(ts);
 
             if (getLogger() != null) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
-        } finally {
-            context.closeContext();
         }
 
     }
@@ -673,26 +596,17 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         }
 
 
-        SQLLink context = new SQLLink();
-        String sql = null;
+        String oldLogin;
         try {
-            String oldLogin = null;
+            oldLogin = jdbcTemplate.queryForObject("SELECT login FROM \"" + table + "\" WHERE sid=?", String.class, sid);
+        } catch (EmptyResultDataAccessException e) {
+            oldLogin = null;
+        }
 
-            context.conn = getConnection();
-            sql = "SELECT login FROM \"" + table + "\" WHERE sid=?";
-            PreparedStatement stat = context.conn.prepareStatement(sql);
-            stat.setString(1, sid);
-            boolean hasResult = stat.execute();
-            if (hasResult) {
-                ResultSet rs = stat.getResultSet();
-                while (rs.next()) {
-                    oldLogin = rs.getString("login");
-                }
-                rs.close();
-            }
 
-            context.conn.setAutoCommit(false);
-
+        String sql = null;
+        TransactionStatus ts = dataSourceTransactionManager.getTransaction(new DefaultTransactionDefinition());
+        try {
             if (!((login == null) && (pwd == null))) {
                 String fields = "";
                 if (login != null) {
@@ -704,104 +618,200 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
                 sql = "UPDATE \"" + table + "\" SET " + fields + " WHERE sid = ?";
 
-                stat = context.conn.prepareStatement(sql);
-
-                int i = 0;
+                ArrayList<String> params = new ArrayList<String>();
                 if (login != null) {
-                    i++;
-                    stat.setString(i, login);
+                    params.add(login);
                 }
                 if (pwd != null) {
-                    i++;
-                    stat.setString(i, pwd);
+                    params.add(pwd);
                 }
-                i++;
-                stat.setString(i, sidIdent);
+                params.add(sidIdent);
 
-                stat.execute();
+                jdbcTemplate.update(sql, params.toArray());
             }
 
-            if (attrs.size() > 0) {
-                sql = "INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)" + " ON CONFLICT (sid, fieldid) DO UPDATE SET fieldvalue = ? WHERE (\"" + tableAttr + "\".sid=?) AND (\"" + tableAttr + "\".fieldid=?)";
-                stat = context.conn.prepareStatement(sql);
-                for (Map.Entry<String, String> pair : attrs.entrySet()) {
-                    stat.setString(1, sidIdent);
-                    stat.setString(2, pair.getKey());
-                    stat.setString(3, pair.getValue());
-                    stat.setString(4, pair.getValue());
-                    stat.setString(5, sidIdent);
-                    stat.setString(6, pair.getKey());
-                    stat.execute();
-                }
-            }
+            attrs.forEach((k, v) -> {
+                jdbcTemplate.update("INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)" + " ON CONFLICT (sid, fieldid) DO UPDATE SET fieldvalue = ? WHERE (\"" + tableAttr + "\".sid=?) AND (\"" + tableAttr + "\".fieldid=?)", sidIdent, k, v, v, sidIdent, k);
+            });
 
-            context.conn.commit();
+            dataSourceTransactionManager.commit(ts);
 
             AuthManager.getTheManager().updateUserInfoByUserUpdate(oldLogin, login, pwd);
         } catch (Exception e) {
-            try {
-                context.conn.rollback();
-            } catch (SQLException e2) {
-            }
+            dataSourceTransactionManager.rollback(ts);
 
             if (getLogger() != null) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
-        } finally {
-            context.closeContext();
         }
 
     }
 
     public void userDelete(String sid) throws EAuthServerLogic {
-        SQLLink context = new SQLLink();
-        String sql = null;
+        String login;
         try {
-            String login = null;
+            login = jdbcTemplate.queryForObject("SELECT login FROM \"" + table + "\" WHERE sid=?", String.class, sid);
+        } catch (EmptyResultDataAccessException e) {
+            login = null;
+        }
 
-            context.conn = getConnection();
-            sql = "SELECT login FROM \"" + table + "\" WHERE sid=?";
-            PreparedStatement stat = context.conn.prepareStatement(sql);
-            stat.setString(1, sid);
-            boolean hasResult = stat.execute();
-            if (hasResult) {
-                ResultSet rs = stat.getResultSet();
-                while (rs.next()) {
-                    login = rs.getString("login");
-                }
-                rs.close();
-            }
-
-            context.conn.setAutoCommit(false);
-
+        String sql = null;
+        TransactionStatus ts = dataSourceTransactionManager.getTransaction(new DefaultTransactionDefinition());
+        try {
             sql = "DELETE FROM \"" + tableAttr + "\" WHERE sid=?";
-            stat = context.conn.prepareStatement(sql);
-            stat.setString(1, sid);
-            stat.execute();
+            jdbcTemplate.update(sql, sid);
 
             sql = "DELETE FROM \"" + table + "\" WHERE sid=?";
-            stat = context.conn.prepareStatement(sql);
-            stat.setString(1, sid);
-            stat.execute();
+            jdbcTemplate.update(sql, sid);
 
-            context.conn.commit();
+            dataSourceTransactionManager.commit(ts);
 
             AuthManager.getTheManager().logoutByUserDelete(login);
         } catch (Exception e) {
-            try {
-                context.conn.rollback();
-            } catch (SQLException e2) {
-            }
+            dataSourceTransactionManager.rollback(ts);
 
             if (getLogger() != null) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
-        } finally {
-            context.closeContext();
         }
 
+    }
+
+    private static class Credentials {
+        private String sid;
+        private String login;
+        private String pwd;
+
+        public String getSid() {
+            return sid;
+        }
+
+        public void setSid(String sid) {
+            this.sid = sid;
+        }
+
+        public String getLogin() {
+            return login;
+        }
+
+        public void setLogin(String login) {
+            this.login = login;
+        }
+
+        public String getPwd() {
+            return pwd;
+        }
+
+        public void setPwd(String pwd) {
+            this.pwd = pwd;
+        }
+    }
+
+    private static class CredentialsRowMapper implements RowMapper<Credentials> {
+        @Override
+        public Credentials mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Credentials credentials = new Credentials();
+            credentials.setSid(rs.getString("sid"));
+            credentials.setLogin(rs.getString("login"));
+            credentials.setPwd(rs.getString("pwd"));
+            return credentials;
+        }
+    }
+
+
+    private static class Attrs {
+        private String sid;
+        private String fieldid;
+        private String fieldvalue;
+
+        public String getSid() {
+            return sid;
+        }
+
+        public void setSid(String sid) {
+            this.sid = sid;
+        }
+
+        public String getFieldid() {
+            return fieldid;
+        }
+
+        public void setFieldid(String fieldid) {
+            this.fieldid = fieldid;
+        }
+
+        public String getFieldvalue() {
+            return fieldvalue;
+        }
+
+        public void setFieldvalue(String fieldvalue) {
+            this.fieldvalue = fieldvalue;
+        }
+    }
+
+    private static class AttrsRowMapper implements RowMapper<Attrs> {
+        @Override
+        public Attrs mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Attrs attrs = new Attrs();
+            attrs.setSid(rs.getString("sid"));
+            attrs.setFieldid(rs.getString("fieldid"));
+            attrs.setFieldvalue(rs.getString("fieldvalue"));
+            return attrs;
+        }
+    }
+
+
+    private static class AttrsExt {
+        private String sid;
+        private String login;
+        private String fieldid;
+        private String fieldvalue;
+
+        public String getSid() {
+            return sid;
+        }
+
+        public void setSid(String sid) {
+            this.sid = sid;
+        }
+
+        public String getLogin() {
+            return login;
+        }
+
+        public void setLogin(String login) {
+            this.login = login;
+        }
+
+        public String getFieldid() {
+            return fieldid;
+        }
+
+        public void setFieldid(String fieldid) {
+            this.fieldid = fieldid;
+        }
+
+        public String getFieldvalue() {
+            return fieldvalue;
+        }
+
+        public void setFieldvalue(String fieldvalue) {
+            this.fieldvalue = fieldvalue;
+        }
+    }
+
+    private static class AttrsExtRowMapper implements RowMapper<AttrsExt> {
+        @Override
+        public AttrsExt mapRow(ResultSet rs, int rowNum) throws SQLException {
+            AttrsExt attrs = new AttrsExt();
+            attrs.setSid(rs.getString("sid"));
+            attrs.setLogin(rs.getString("login"));
+            attrs.setFieldid(rs.getString("fieldid"));
+            attrs.setFieldvalue(rs.getString("fieldvalue"));
+            return attrs;
+        }
     }
 
 
@@ -813,11 +823,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
         @Override
         void closeContext() {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
 
     }

@@ -204,6 +204,8 @@ public final class AuthManager {
     }
 
     private void commonInitialize() {
+        loginProviders.forEach(lp -> lp.initialize());
+
         authsessions = new ConcurrentHashMap<String, AuthSession>(authsessionsInitialCapacity, authsessionsLoadFactor, authsessionsConcurrencyLevel);
         appsessions = new ConcurrentHashMap<String, String>(appsessionsInitialCapacity, appsessionsLoadFactor, appsessionsConcurrencyLevel);
 
@@ -551,7 +553,7 @@ public final class AuthManager {
             if (procPostProcessExtProvider != null) {
                 PostProcessResult ppr = null;
                 try {
-                    ppr = procPostProcessExtProvider.callProcPostProcess(null, sesid, login, false, null, ip, true, LockoutManager.getLockoutManager().getAttemptsCount(login), LockoutManager.getLockoutManager().getTimeToUnlock(login));
+                    ppr = procPostProcessExtProvider.callProcPostProcess(sesid, login, false, null, ip, true, LockoutManager.getLockoutManager().getAttemptsCount(login), LockoutManager.getLockoutManager().getTimeToUnlock(login));
                 } catch (Exception e) {
                     return e.getMessage();
                 }
