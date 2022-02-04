@@ -156,14 +156,22 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             List<Credentials> credentials = jdbcTemplate.query(query, new CredentialsRowMapper(), login);
             if (credentials.size() == 1) {
                 String pwdComplex = credentials.get(0).getPwd();
-                success = nonNull(pwdComplex) && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
+                success = nonNull(pwdComplex)
+                        &&
+                        (
+                                (!AuthManager.getTheManager().isCheckPasswordHashOnly())
+                                        && pwdComplex.equals(password)
+                                        || checkPasswordHash(pwdComplex, password)
+                        );
 
                 StringWriter sw = new StringWriter();
                 writeReturningAttributes(credentials.get(0), sw);
                 sw.flush();
 
                 if (nonNull(procPostProcess)) {
-                    PostProcessResult ppr = callProcPostProcess(sesid, login, success, sw.toString(), ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
+                    PostProcessResult ppr = callProcPostProcess(sesid, login, success, sw.toString(), ip, false,
+                            LockoutManager.getLockoutManager().getAttemptsCount(login) + 1,
+                            LockoutManager.getLockoutTime() * 60);
                     success = success && ppr.isSuccess();
                     message = ppr.getMessage();
                 } else {
@@ -178,7 +186,9 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
             } else {
                 if (nonNull(procPostProcess)) {
-                    PostProcessResult ppr = callProcPostProcess(sesid, login, false, null, ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
+                    PostProcessResult ppr = callProcPostProcess(sesid, login, false, null, ip, false,
+                            LockoutManager.getLockoutManager().getAttemptsCount(login) + 1,
+                            LockoutManager.getLockoutTime() * 60);
                     message = ppr.getMessage();
                 }
             }
@@ -234,13 +244,19 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
     public PostProcessResult callProcPostProcess(String sesid, String login, boolean isauth, String attributes, String ip, boolean islocked, int attemptsCount, long timeToUnlock) {
 
-        SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate).withProcedureName(procPostProcess).declareParameters(new SqlOutParameter("ret", Types.INTEGER), new SqlOutParameter("message", Types.VARCHAR));
+        SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate).withProcedureName(procPostProcess)
+                .declareParameters(new SqlOutParameter("ret", Types.INTEGER),
+                        new SqlOutParameter("message", Types.VARCHAR));
 
-        SqlParameterSource in = new MapSqlParameterSource().addValue("sesid", sesid).addValue("userlogin", login).addValue("userauth", isauth).addValue("userattributes", attributes).addValue("userip", ip).addValue("userlocked", islocked).addValue("userloginattempts", attemptsCount).addValue("usertimetounlock", timeToUnlock);
+        SqlParameterSource in = new MapSqlParameterSource().addValue("sesid", sesid).addValue("userlogin", login)
+                .addValue("userauth", isauth).addValue("userattributes", attributes).addValue("userip", ip)
+                .addValue("userlocked", islocked).addValue("userloginattempts", attemptsCount)
+                .addValue("usertimetounlock", timeToUnlock);
 
         Map<String, Object> out = simpleJdbcCall.execute(in);
 
-        return new PostProcessResult(((int) out.get("ret")) == 0, "Stored procedure message begin: " + out.get("message") + " Stored procedure message end.");
+        return new PostProcessResult(((int) out.get("ret")) == 0,
+                "Stored procedure message begin: " + out.get("message") + " Stored procedure message end.");
 
     }
 
@@ -330,7 +346,8 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
         try {
             SecureRandom r = new SecureRandom();
             String salt = String.format("%016x", r.nextLong()) + String.format("%016x", r.nextLong());
-            String password = getHashAlgorithm1(hashAlgorithm) + PASSWORD_DIVIDER + salt + PASSWORD_DIVIDER + getHash(newpwd + salt + localSecuritySalt, hashAlgorithm);
+            String password = getHashAlgorithm1(hashAlgorithm) + PASSWORD_DIVIDER + salt + PASSWORD_DIVIDER
+                    + getHash(newpwd + salt + localSecuritySalt, hashAlgorithm);
 
             sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, "pwd", "login");
             jdbcTemplate.update(sql, password, userName);
@@ -358,7 +375,9 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             xw.writeStartElement("users");
             writeXMLAttr(xw, "pid", getId());
 
-            sql = String.format("SELECT a.sid, a.login, b.fieldid, b.fieldvalue FROM \"%s\" a LEFT OUTER JOIN \"%s\" b ON a.sid = b.sid ORDER BY a.sid", table, tableAttr);
+            sql = String.format(
+                    "SELECT a.sid, a.login, b.fieldid, b.fieldvalue FROM \"%s\" a LEFT OUTER JOIN \"%s\" b ON a.sid = b.sid ORDER BY a.sid",
+                    table, tableAttr);
             List<AttrsExt> attrs = jdbcTemplate.query(sql, new AttrsExtRowMapper());
 
             String sid = "";
@@ -509,7 +528,8 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             (new NamedParameterJdbcTemplate(jdbcTemplate)).update(sql, in);
 
             String finalSid = sid;
-            attrs.forEach((k, v) -> jdbcTemplate.update("INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)", finalSid, k, v));
+            attrs.forEach((k, v) -> jdbcTemplate.update(
+                    "INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)", finalSid, k, v));
 
             dataSourceTransactionManager.commit(ts);
         } catch (Exception e) {
@@ -554,7 +574,8 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
 
         String oldLogin;
         try {
-            oldLogin = jdbcTemplate.queryForObject("SELECT login FROM \"" + table + "\" WHERE sid=?", String.class, sid);
+            oldLogin = jdbcTemplate.queryForObject("SELECT login FROM \"" + table + "\" WHERE sid=?",
+                    String.class, sid);
         } catch (EmptyResultDataAccessException e) {
             oldLogin = null;
         }
@@ -586,7 +607,9 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
                 jdbcTemplate.update(sql, params.toArray());
             }
 
-            attrs.forEach((k, v) -> jdbcTemplate.update("INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)" + " ON CONFLICT (sid, fieldid) DO UPDATE SET fieldvalue = ? WHERE (\"" + tableAttr + "\".sid=?) AND (\"" + tableAttr + "\".fieldid=?)", sidIdent, k, v, v, sidIdent, k));
+            attrs.forEach((k, v) -> jdbcTemplate.update(
+                    "INSERT INTO \"" + tableAttr + "\" (sid, fieldid, fieldvalue) VALUES (?, ?, ?)" + " ON CONFLICT (sid, fieldid) DO UPDATE SET fieldvalue = ? WHERE (\"" + tableAttr + "\".sid=?) AND (\"" + tableAttr + "\".fieldid=?)",
+                    sidIdent, k, v, v, sidIdent, k));
 
             dataSourceTransactionManager.commit(ts);
 
