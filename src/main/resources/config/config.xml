@@ -26,6 +26,7 @@
         <checkpasswordhashonly>false</checkpasswordhashonly>
     </common>
 
+<!--
 
     <sqlserverext>
         <id>test2</id>
@@ -46,6 +47,7 @@
 
     </sqlserverext>
 
+-->
 
     <!--
                 <sqlserverext>
@@ -74,7 +76,7 @@
     -->
 
 
-    <!--
+
         <sqlserver>
             <logging>true</logging>
             <url>jdbc:postgresql://localhost:5432/test</url>
@@ -96,12 +98,12 @@
 
             <hikariproperties
                     poolName="sqlserverPool"
-                    connectionTimeout="32000"
-                    maximumPoolSize="4"
+                    connectionTimeout="14000"
+                    maximumPoolSize="5"
             />
 
         </sqlserver>
-    -->
+
 
 
     <!--

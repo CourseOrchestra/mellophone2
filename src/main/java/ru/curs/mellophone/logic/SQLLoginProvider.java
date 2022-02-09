@@ -4,6 +4,9 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -23,6 +26,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,6 +55,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
     private HikariDataSource dataSource = null;
     private Properties hikariProperties = new Properties();
+    private JdbcTemplate jdbcTemplate;
     private String connectionUsername;
     private String connectionPassword;
     private String table;
@@ -61,6 +66,9 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     private String localSecuritySalt = "";
     private String procPostProcess = null;
     private AuthMethod authMethod = AuthMethod.CHECK;
+
+
+
 
     /**
      * Возвращает тип SQL сервера.
@@ -152,6 +160,23 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         this.authMethod = authMethod;
     }
 
+    @Override
+    public void initialize() {
+        HikariConfig hikariConfig = new HikariConfig(hikariProperties);
+        if (nonNull(getConnectionUrl())) {
+            hikariConfig.setJdbcUrl(getConnectionUrl());
+        }
+        if (nonNull(connectionUsername)) {
+            hikariConfig.setUsername(connectionUsername);
+        }
+        if (isNull(hikariConfig.getDataSourceClassName()) && nonNull(connectionPassword)) {
+            hikariConfig.setPassword(connectionPassword);
+        }
+        HikariDataSource dataSource = new HikariDataSource(hikariConfig);
+        jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+
     private synchronized Connection getConnection() throws SQLException {
         if (dataSource == null) {
             HikariConfig hikariConfig = new HikariConfig(hikariProperties);
@@ -170,6 +195,20 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         return dataSource.getConnection();
     }
 
+
+    private static class CredentialsRowMapper implements RowMapper<Object[]> {
+        @Override
+        public Object[] mapRow(ResultSet rs, int rowNum) throws SQLException {
+            final int columnCount = rs.getMetaData().getColumnCount();
+            Object[] values = new Object[columnCount];
+            for (int i = 1; i <= columnCount; i++) {
+                values[i - 1] = rs.getObject(i);
+            }
+            return values;
+        }
+    }
+
+
     @Override
     void connect(String sesid, String login, String password, String ip, ProviderContextHolder context, PrintWriter pw) throws EAuthServerLogic {
 
@@ -186,102 +225,59 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         BadLoginType blt = BadLoginType.BAD_CREDENTIALS;
         try {
 
-            if (authMethod == AuthMethod.CONNECT) {
-                Connection connAuthMethodCONNECT = DataSourceBuilder.create().url(getConnectionUrl()).build().getConnection(login, password);
-                connAuthMethodCONNECT.close();
-            }
 
-            ((SQLLink) context).conn = getConnection();
+            sql = String.format("SELECT \"%s\", %s FROM \"%s\" WHERE lower(\"%s\") = ?", fieldPassword, getSelectFields(), table, fieldLogin);
+            List<Object[]> credentials = jdbcTemplate.query(sql, new SQLLoginProvider.CredentialsRowMapper(), login);
+            if (credentials.size() == 1) {
 
-            if (getSQLServerType(getConnectionUrl()) == SQLServerType.FIREBIRD) {
 
-                switch (authMethod) {
-                    case CHECK:
-                        sql = String.format("SELECT \"%s\", %s FROM \"%s\" WHERE \"%s\" = ?", fieldPassword, getSelectFields(), table, fieldLogin);
-                        break;
-                    case CONNECT:
-                        sql = String.format("SELECT %s FROM \"%s\" WHERE \"%s\" = ?", getSelectFields(), table, fieldLogin);
-                        break;
-                    default:
-                        break;
+
+
+/*
+
+                if ((procPostProcess == null) && (fieldBlocked != null)) {
+                    if (credentials.get(fieldBlocked)) {
+                        success = false;
+                        message = String.format(USER_IS_BLOCKED_PERMANENTLY, login);
+                        blt = BadLoginType.USER_BLOCKED_PERMANENTLY;
+                    }
                 }
 
-            } else {
-                sql = String.format("SELECT \"%s\", %s FROM \"%s\" WHERE lower(\"%s\") = ?", fieldPassword, getSelectFields(), table, fieldLogin);
-            }
+                if (blt != BadLoginType.USER_BLOCKED_PERMANENTLY) {
 
+                    String pwdComplex = rs.getString(fieldPassword);
+                    success = (pwdComplex != null) && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
 
-            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
-
-            if (getSQLServerType(getConnectionUrl()) == SQLServerType.FIREBIRD) {
-                stat.setString(1, login);
-            } else {
-                stat.setString(1, login.toLowerCase());
-            }
-
-
-            boolean hasResult = stat.execute();
-            if (hasResult) {
-                ResultSet rs = stat.getResultSet();
-                if (rs.next()) {
-
-                    if ((procPostProcess == null) && (fieldBlocked != null)) {
-                        if (rs.getBoolean(fieldBlocked)) {
-                            success = false;
-                            message = String.format(USER_IS_BLOCKED_PERMANENTLY, login);
-                            blt = BadLoginType.USER_BLOCKED_PERMANENTLY;
-                        }
-                    }
-
-                    if (blt != BadLoginType.USER_BLOCKED_PERMANENTLY) {
-
-                        switch (authMethod) {
-                            case CHECK:
-                                String pwdComplex = rs.getString(fieldPassword);
-                                success = (pwdComplex != null) && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
-                                break;
-                            case CONNECT:
-                                success = true;
-                                break;
-                            default:
-                                break;
-                        }
-
-                        StringWriter sw = new StringWriter();
-                        writeReturningAttributes(sw, rs);
-                        sw.flush();
-
-                        if (procPostProcess != null) {
-
-                            PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, success, sw.toString(), ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
-                            success = success && ppr.isSuccess();
-                            message = ppr.getMessage();
-
-                        } else {
-                            if (success) {
-                                message = USER_LOGIN + login + "' в '" + getConnectionUrl() + "' успешен!";
-                            }
-                        }
-
-
-                        if (success && (pw != null)) {
-                            //writeReturningAttributes(pw, rs);
-                            pw.append(sw.toString());
-                        }
-
-                    }
-
-
-                } else {
+                    StringWriter sw = new StringWriter();
+                    writeReturningAttributes(sw, rs);
+                    sw.flush();
 
                     if (procPostProcess != null) {
 
-                        PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, false, null, ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
-
+                        PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, success, sw.toString(), ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
+                        success = success && ppr.isSuccess();
                         message = ppr.getMessage();
 
+                    } else {
+                        if (success) {
+                            message = USER_LOGIN + login + "' в '" + getConnectionUrl() + "' успешен!";
+                        }
                     }
 
+
+                    if (success && (pw != null)) {
+                        pw.append(sw.toString());
+                    }
+
+                }
+
+*/
+
+
+            }else{
+                if (procPostProcess != null) {
+                    PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, false, null, ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
+                    message = ppr.getMessage();
                 }
             }
         } catch (Exception e) {
