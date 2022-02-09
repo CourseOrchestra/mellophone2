@@ -23,7 +23,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,7 +54,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             4);
     private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
     private final Properties hikariProperties = new Properties();
-    private HikariDataSource dataSource = null;
     private JdbcTemplate jdbcTemplate;
     private String connectionUsername;
     private String connectionPassword;
@@ -170,25 +171,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         }
         HikariDataSource dataSource = new HikariDataSource(hikariConfig);
         jdbcTemplate = new JdbcTemplate(dataSource);
-    }
-
-
-    private synchronized Connection getConnection() throws SQLException {
-        if (dataSource == null) {
-            HikariConfig hikariConfig = new HikariConfig(hikariProperties);
-            if (nonNull(getConnectionUrl())) {
-                hikariConfig.setJdbcUrl(getConnectionUrl());
-            }
-            if (nonNull(connectionUsername)) {
-                hikariConfig.setUsername(connectionUsername);
-            }
-            if (isNull(hikariConfig.getDataSourceClassName()) && nonNull(connectionPassword)) {
-                hikariConfig.setPassword(connectionPassword);
-            }
-            dataSource = new HikariDataSource(hikariConfig);
-        }
-
-        return dataSource.getConnection();
     }
 
     @Override
@@ -386,36 +368,26 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
         String sql = "";
         try {
-            //            ((SQLLink) context).conn = getConnection();
+            String query = String.format("SELECT %s FROM \"%s\" WHERE \"%s\" = ?", getSelectFields(),
+                    table, fieldLogin);
+            List<SQLLoginProvider.UserInfo> uis = jdbcTemplate.query(query, new SQLLoginProvider.UserInfoRowMapper(),
+                    name);
 
-            sql = String.format("SELECT %s FROM \"%s\" WHERE lower(\"%s\") = ?", getSelectFields(), table, fieldLogin);
-            //PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
-            PreparedStatement stat = null;
-            stat.setString(1, name.toLowerCase());
-
-            boolean hasResult = stat.execute();
-            if (hasResult) {
-                ResultSet rs = stat.getResultSet();
-                String[] attrs = searchReturningAttributes.keySet().toArray(new String[0]);
+            if (uis.size() == 1) {
                 XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(pw);
-                if (rs.next()) {
-                    xw.writeStartDocument("utf-8", "1.0");
-                    xw.writeEmptyElement("user");
-                    for (String attr : attrs) {
-                        writeXMLAttr(xw, attr, rs.getString(searchReturningAttributes.get(attr)));
-                    }
-                    xw.writeEndDocument();
-                    xw.flush();
-
-                    if (getLogger() != null) {
-                        getLogger().info(USER + name + "' найден");
-                    }
-
-                    return;
+                xw.writeStartDocument("utf-8", "1.0");
+                xw.writeEmptyElement("user");
+                String[] attrs = uis.get(0).getUserAttrs().keySet().toArray(new String[0]);
+                for (String attr : attrs) {
+                    writeXMLAttr(xw, attr, uis.get(0).getUserAttrs().get(attr));
                 }
+                xw.writeEndDocument();
+                xw.flush();
+
+                return;
             }
 
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().info(USER + name + "' не найден");
             }
 
@@ -436,42 +408,31 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
         String sql = "";
         try {
-
-
-/*
-            if (((SQLLink) context).conn == null) {
-                ((SQLLink) context).conn = getConnection();
+            XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(pw);
+            if (needStartDocument) {
+                xw.writeStartDocument("utf-8", "1.0");
             }
-*/
-
+            xw.writeStartElement("users");
+            writeXMLAttr(xw, "pid", getId());
 
             sql = String.format("SELECT %s FROM \"%s\" ORDER BY \"%s\"", getSelectFields(), table, fieldLogin);
+            List<SQLLoginProvider.UserInfo> uis = jdbcTemplate.query(sql, new SQLLoginProvider.UserInfoRowMapper());
 
-            //PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
-            PreparedStatement stat = null;
-
-            boolean hasResult = stat.execute();
-            if (hasResult) {
-                ResultSet rs = stat.getResultSet();
-                String[] attrs = searchReturningAttributes.keySet().toArray(new String[0]);
-                XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(pw);
-                if (needStartDocument) {
-                    xw.writeStartDocument("utf-8", "1.0");
-                }
-                xw.writeStartElement("users");
-                writeXMLAttr(xw, "pid", getId());
-                while (rs.next()) {
-                    xw.writeEmptyElement("user");
-                    for (String attr : attrs) {
-                        writeXMLAttr(xw, attr, rs.getString(searchReturningAttributes.get(attr)));
-                    }
-                }
-                xw.writeEndDocument();
-                xw.flush();
-                if (getLogger() != null) {
-                    getLogger().info("Импорт пользователей успешно завершен");
+            for (SQLLoginProvider.UserInfo ui : uis) {
+                xw.writeEmptyElement("user");
+                String[] attrs = ui.getUserAttrs().keySet().toArray(new String[0]);
+                for (String attr : attrs) {
+                    writeXMLAttr(xw, attr, ui.getUserAttrs().get(attr));
                 }
             }
+
+            xw.writeEndDocument();
+            xw.flush();
+
+            if (nonNull(getLogger())) {
+                getLogger().info("Импорт пользователей успешно завершен");
+            }
+
         } catch (Exception e) {
             if (getLogger() != null) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
@@ -492,26 +453,13 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
         String sql = "";
         try {
-            //((SQLLink) context).conn = getConnection();
-
-            sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, fieldPassword, fieldLogin);
-
-            //PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
-            PreparedStatement stat = null;
-
-
             SecureRandom r = new SecureRandom();
             String salt = String.format("%016x", r.nextLong()) + String.format("%016x", r.nextLong());
+            String password = getHashAlgorithm1(hashAlgorithm) + PASSWORD_DIVIDER + salt + PASSWORD_DIVIDER
+                    + getHash(newpwd + salt + localSecuritySalt, hashAlgorithm);
 
-            String password = getHashAlgorithm1(hashAlgorithm) + PASSWORD_DIVIDER + salt + PASSWORD_DIVIDER + getHash(
-                    newpwd + salt + localSecuritySalt, hashAlgorithm);
-
-
-            stat.setString(1, password);
-            stat.setString(2, userName);
-
-            stat.execute();
-
+            sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, fieldPassword, fieldLogin);
+            jdbcTemplate.update(sql, password, userName);
         } catch (Exception e) {
             if (getLogger() != null) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
@@ -632,6 +580,23 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         }
     }
 
+    private static class UserInfo {
+        private final HashMap<String, String> userAttrs = new HashMap<String, String>();
+
+        public HashMap<String, String> getUserAttrs() {
+            return userAttrs;
+        }
+    }
+
+    /**
+     * Контекст соединения с базой данных.
+     */
+    private static class SQLLink extends ProviderContextHolder {
+        @Override
+        void closeContext() {
+        }
+    }
+
     private class CredentialsRowMapper implements RowMapper<SQLLoginProvider.Credentials> {
         @Override
         public SQLLoginProvider.Credentials mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -649,12 +614,15 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         }
     }
 
-    /**
-     * Контекст соединения с базой данных.
-     */
-    private static class SQLLink extends ProviderContextHolder {
+    private class UserInfoRowMapper implements RowMapper<SQLLoginProvider.UserInfo> {
         @Override
-        void closeContext() {
+        public SQLLoginProvider.UserInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
+            SQLLoginProvider.UserInfo ui = new UserInfo();
+            String[] attrs = searchReturningAttributes.keySet().toArray(new String[0]);
+            for (String attr : attrs) {
+                ui.getUserAttrs().put(attr, rs.getString(searchReturningAttributes.get(attr)));
+            }
+            return ui;
         }
     }
 

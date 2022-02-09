@@ -26,28 +26,28 @@
         <checkpasswordhashonly>false</checkpasswordhashonly>
     </common>
 
-<!--
+    <!--
 
-    <sqlserverext>
-        <id>test2</id>
-        <group_providers>Группа1</group_providers>
-        <logging>true</logging>
-        <url>jdbc:postgresql://localhost:5432/test</url>
-        <connectionusername>postgres</connectionusername>
-        <connectionpassword>F708420Dx</connectionpassword>
-        <table>User</table>
-        <tableattr>UserAttr</tableattr>
-        <procpostprocess>postprocess</procpostprocess>
+        <sqlserverext>
+            <id>test2</id>
+            <group_providers>Группа1</group_providers>
+            <logging>true</logging>
+            <url>jdbc:postgresql://localhost:5432/test</url>
+            <connectionusername>postgres</connectionusername>
+            <connectionpassword>F708420Dx</connectionpassword>
+            <table>User</table>
+            <tableattr>UserAttr</tableattr>
+            <procpostprocess>postprocess</procpostprocess>
 
-        <hikariproperties
-                poolName="sqlserverextPool"
-                connectionTimeout="14000"
-                maximumPoolSize="5"
-        />
+            <hikariproperties
+                    poolName="sqlserverextPool"
+                    connectionTimeout="14000"
+                    maximumPoolSize="5"
+            />
 
-    </sqlserverext>
+        </sqlserverext>
 
--->
+    -->
 
     <!--
                 <sqlserverext>
@@ -76,34 +76,33 @@
     -->
 
 
+    <sqlserver>
+        <id>test1</id>
+        <logging>true</logging>
+        <url>jdbc:postgresql://localhost:5432/test</url>
+        <connectionusername>postgres</connectionusername>
+        <connectionpassword>F708420Dx</connectionpassword>
+        <table>Пользователи</table>
+        <fieldlogin>Логин</fieldlogin>
+        <fieldpassword>Пароль</fieldpassword>
+        <fieldblocked>Заблокированный</fieldblocked>
+        <searchreturningattributes
+                SID="Поле objectSid"
+                login="Логин"
+                name="Поле name"
+                email="Поле email"
+                phone="Поле phone"
+                organization=""
+                fax="Поле fax"
+        />
 
-        <sqlserver>
-            <logging>true</logging>
-            <url>jdbc:postgresql://localhost:5432/test</url>
-            <connectionusername>postgres</connectionusername>
-            <connectionpassword>F708420Dx</connectionpassword>
-            <table>Пользователи</table>
-            <fieldlogin>Логин</fieldlogin>
-            <fieldpassword>Пароль</fieldpassword>
-            <fieldblocked>Заблокированный</fieldblocked>
-            <searchreturningattributes
-                    SID="Поле objectSid"
-                    login="Логин"
-                    name="Поле name"
-                    email="Поле email"
-                    phone="Поле phone"
-                    organization=""
-                    fax="Поле fax"
-            />
+        <hikariproperties
+                poolName="sqlserverPool"
+                connectionTimeout="14000"
+                maximumPoolSize="5"
+        />
 
-            <hikariproperties
-                    poolName="sqlserverPool"
-                    connectionTimeout="14000"
-                    maximumPoolSize="5"
-            />
-
-        </sqlserver>
-
+    </sqlserver>
 
 
     <!--
