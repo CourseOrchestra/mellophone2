@@ -17,7 +17,6 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -50,9 +49,8 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     private static final String PBKDF2_PASSWORD_DIVIDER = "\\$";
     private static final String PBKDF2_ALG_DIVIDER = ":";
 
-    private static final ConcurrentHashMap<String, MessageDigest> mdPool = new ConcurrentHashMap<String, MessageDigest>(
-            4);
-    private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
+    private static final ConcurrentHashMap<String, MessageDigest> mdPool = new ConcurrentHashMap<>(4);
+    private final HashMap<String, String> searchReturningAttributes = new HashMap<>();
     private final Properties hikariProperties = new Properties();
     private JdbcTemplate jdbcTemplate;
     private String connectionUsername;
@@ -64,40 +62,9 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     private String hashAlgorithm = "SHA-256";
     private String localSecuritySalt = "";
     private String procPostProcess = null;
-    private AuthMethod authMethod = AuthMethod.CHECK;
-
-
-    /**
-     * Возвращает тип SQL сервера.
-     */
-    private static SQLServerType getSQLServerType(String url) {
-        final String mssql = "sqlserver";
-        final String postgresql = "postgresql";
-        final String oracle = "oracle";
-        final String firebird = "firebird";
-
-        SQLServerType st = null;
-        if (url.indexOf(mssql) > -1) {
-            st = SQLServerType.MSSQL;
-        } else {
-            if (url.indexOf(postgresql) > -1) {
-                st = SQLServerType.POSTGRESQL;
-            } else {
-                if (url.indexOf(oracle) > -1) {
-                    st = SQLServerType.ORACLE;
-                } else {
-                    if (url.indexOf(firebird) > -1) {
-                        st = SQLServerType.FIREBIRD;
-                    }
-                }
-            }
-        }
-
-        return st;
-    }
 
     private static void checkForPossibleSQLInjection(String sql, String errMsg) throws EAuthServerLogic {
-        if (sql.indexOf(" ") > -1) throw EAuthServerLogic.create(errMsg);
+        if (sql.contains(" ")) throw EAuthServerLogic.create(errMsg);
     }
 
     @Override
@@ -120,7 +87,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     }
 
     void setTable(String table) {
-        // this.table = table;
         this.table = table.replace(".", "\".\"");
     }
 
@@ -153,10 +119,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         searchReturningAttributes.put(name, value);
     }
 
-    public void setAuthMethod(AuthMethod authMethod) {
-        this.authMethod = authMethod;
-    }
-
     @Override
     public void initialize() {
         HikariConfig hikariConfig = new HikariConfig(hikariProperties);
@@ -176,7 +138,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     @Override
     void connect(String sesid, String login, String password, String ip, ProviderContextHolder context, PrintWriter pw) throws EAuthServerLogic {
 
-        if (getLogger() != null) {
+        if (nonNull(getLogger())) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
             getLogger().info("login='" + login + "'");
         }
@@ -193,9 +155,8 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             List<Credentials> credentials = jdbcTemplate.query(sql, new SQLLoginProvider.CredentialsRowMapper(), login);
             if (credentials.size() == 1) {
 
-                if ((procPostProcess == null) && (fieldBlocked != null)) {
-                    if (credentials.get(0).blocked) {
-                        success = false;
+                if (isNull(procPostProcess) && nonNull(fieldBlocked)) {
+                    if (credentials.get(0).isBlocked()) {
                         message = String.format(USER_IS_BLOCKED_PERMANENTLY, login);
                         blt = BadLoginType.USER_BLOCKED_PERMANENTLY;
                     }
@@ -224,9 +185,8 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
                     xw.flush();
                     sw.flush();
 
-                    if (procPostProcess != null) {
-                        PostProcessResult ppr = callProcPostProcess(sesid, login, success,
-                                sw.toString(), ip, false,
+                    if (nonNull(procPostProcess)) {
+                        PostProcessResult ppr = callProcPostProcess(sesid, login, success, sw.toString(), ip, false,
                                 LockoutManager.getLockoutManager().getAttemptsCount(login) + 1,
                                 LockoutManager.getLockoutTime() * 60);
                         success = success && ppr.isSuccess();
@@ -237,13 +197,13 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
                         }
                     }
 
-                    if (success && (pw != null)) {
+                    if (success && nonNull(pw)) {
                         pw.append(sw.toString());
                     }
                 }
 
             } else {
-                if (procPostProcess != null) {
+                if (nonNull(procPostProcess)) {
                     PostProcessResult ppr = callProcPostProcess(sesid, login, false, null, ip,
                             false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1,
                             LockoutManager.getLockoutTime() * 60);
@@ -251,7 +211,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
                 }
             }
         } catch (Exception e) {
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
@@ -261,7 +221,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             message = USER_LOGIN + login + "' в '" + getConnectionUrl() + "' не успешен: " + BAD_CREDENTIALS;
         }
 
-        if (getLogger() != null) {
+        if (nonNull(getLogger())) {
             getLogger().info(message);
         }
 
@@ -292,7 +252,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     }
 
 
-    private boolean checkPasswordHash(String pwdComplex, String password) throws UnsupportedEncodingException, EAuthServerLogic {
+    private boolean checkPasswordHash(String pwdComplex, String password) throws EAuthServerLogic {
 
         if (PBKDF2.equalsIgnoreCase(pwdComplex.substring(0, PBKDF2.length()))) {
             String[] pwdParts = pwdComplex.split(PBKDF2_PASSWORD_DIVIDER);
@@ -331,35 +291,35 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     private String getSelectFields() {
         String[] fields = searchReturningAttributes.values().toArray(new String[0]);
 
-        String s = null;
+        StringBuilder s = null;
         for (String field : fields) {
             field = String.format("\"%s\"", field);
-            if (s == null) {
-                s = field;
+            if (isNull(s)) {
+                s = new StringBuilder(field);
             } else {
-                if (s.contains(field)) {
+                if (s.toString().contains(field)) {
                     continue;
                 }
-                s = s + ", " + field;
+                s.append(", ").append(field);
             }
         }
 
-        if (fieldBlocked != null) {
+        if (nonNull(fieldBlocked)) {
             String field = String.format("\"%s\"", fieldBlocked);
-            if (s == null) {
-                s = field;
+            if (isNull(s)) {
+                s = new StringBuilder(field);
             } else {
-                s = s + ", " + field;
+                s.append(", ").append(field);
             }
         }
 
-        return s;
+        return isNull(s) ? null : s.toString();
     }
 
     @Override
     void getUserInfoByName(ProviderContextHolder context, String name, PrintWriter pw) throws EAuthServerLogic {
 
-        if (getLogger() != null) {
+        if (nonNull(getLogger())) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
             getLogger().info("name='" + name + "'");
         }
@@ -392,7 +352,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             }
 
         } catch (Exception e) {
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
@@ -402,7 +362,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     @Override
     void importUsers(ProviderContextHolder context, PrintWriter pw, boolean needStartDocument) throws EAuthServerLogic {
 
-        if (getLogger() != null) {
+        if (nonNull(getLogger())) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
         }
 
@@ -434,7 +394,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             }
 
         } catch (Exception e) {
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
@@ -444,7 +404,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     @Override
     void changePwd(ProviderContextHolder context, String userName, String newpwd) throws EAuthServerLogic {
 
-        if (getLogger() != null) {
+        if (nonNull(getLogger())) {
             getLogger().info("Url='" + getConnectionUrl() + "'");
             getLogger().info("name='" + userName + "'");
         }
@@ -461,7 +421,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, fieldPassword, fieldLogin);
             jdbcTemplate.update(sql, password, userName);
         } catch (Exception e) {
-            if (getLogger() != null) {
+            if (nonNull(getLogger())) {
                 getLogger().error(String.format(ERROR_SQL_SERVER, getConnectionUrl(), e.getMessage(), sql));
             }
             throw EAuthServerLogic.create(e);
@@ -478,32 +438,25 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
      * Возвращает значение функции SHA-1 для строки символов в виде 16-ричного
      * числа, в точности как реализовано в клиентском JavaScript. Необходимо для
      * контроля логинов и паролей
-     *
-     * @throws UnsupportedEncodingException
-     * @throws EAuthServerLogic
      */
-    private String getHash(String input, String alg) throws UnsupportedEncodingException, EAuthServerLogic {
+    private String getHash(String input, String alg) throws EAuthServerLogic {
 
         MessageDigest md = mdPool.get(alg);
-        if (md == null) {
+        if (isNull(md)) {
             try {
                 md = MessageDigest.getInstance(alg);
-                if (mdPool.get(alg) == null) {
-                    mdPool.put(alg, md);
-                }
+                mdPool.putIfAbsent(alg, md);
             } catch (NoSuchAlgorithmException e) {
-                if (getLogger() != null) {
+                if (nonNull(getLogger())) {
                     getLogger().error(e.getMessage());
                 }
                 throw EAuthServerLogic.create("Алгоритм хеширования " + alg + " не доступен");
             }
         }
 
-        synchronized (md) {
-            md.reset();
-            md.update(input.getBytes(StandardCharsets.UTF_8));
-            return asHex(md.digest());
-        }
+        md.reset();
+        md.update(input.getBytes(StandardCharsets.UTF_8));
+        return asHex(md.digest());
 
     }
 
@@ -514,10 +467,8 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), iterations, keyLength);
             SecretKey key = skf.generateSecret(spec);
             byte[] hashedBytes = key.getEncoded();
-//            String res = "Hex.encodeHexString(hashedBytes)";
             HexFormat commaFormat = HexFormat.of();
-            String res = commaFormat.formatHex(hashedBytes);
-            return res;
+            return commaFormat.formatHex(hashedBytes);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw EAuthServerLogic.create(e);
         }
@@ -531,22 +482,9 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         return input.toUpperCase().replace("SHA", "SHA-");
     }
 
-    /**
-     * Тип метода аутентификации.
-     */
-    enum AuthMethod {
-        CHECK, CONNECT
-    }
-
-    /**
-     * Тип SQL сервера.
-     */
-    private enum SQLServerType {
-        MSSQL, POSTGRESQL, ORACLE, FIREBIRD
-    }
 
     private static class Credentials {
-        private final HashMap<String, String> userAttrs = new HashMap<String, String>();
+        private final HashMap<String, String> userAttrs = new HashMap<>();
         private String login;
         private String pwd;
         private boolean blocked = false;
@@ -567,7 +505,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             this.pwd = pwd;
         }
 
-        public boolean getBlocked() {
+        public boolean isBlocked() {
             return blocked;
         }
 
@@ -581,7 +519,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     }
 
     private static class UserInfo {
-        private final HashMap<String, String> userAttrs = new HashMap<String, String>();
+        private final HashMap<String, String> userAttrs = new HashMap<>();
 
         public HashMap<String, String> getUserAttrs() {
             return userAttrs;
@@ -603,7 +541,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
             SQLLoginProvider.Credentials credentials = new Credentials();
             credentials.setLogin(rs.getString(fieldLogin));
             credentials.setPwd(rs.getString(fieldPassword));
-            if (fieldBlocked != null) {
+            if (nonNull(fieldBlocked)) {
                 credentials.setBlocked(rs.getBoolean(fieldBlocked));
             }
             String[] attrs = searchReturningAttributes.keySet().toArray(new String[0]);

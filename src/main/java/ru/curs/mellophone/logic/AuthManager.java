@@ -1886,15 +1886,6 @@ public final class AuthManager {
                 }
             });
 
-            actions.put("authmethod", new ParserAction() {
-                @Override
-                void characters(String value) {
-                    if (loginProviders.size() > 0)
-                        ((SQLLoginProvider) loginProviders.getLast()).setAuthMethod(
-                                SQLLoginProvider.AuthMethod.valueOf(value.trim()));
-                }
-            });
-
         }
 
         @Override

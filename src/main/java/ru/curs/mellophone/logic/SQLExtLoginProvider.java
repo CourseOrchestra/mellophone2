@@ -440,7 +440,6 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), iterations, keyLength);
             SecretKey key = skf.generateSecret(spec);
             byte[] hashedBytes = key.getEncoded();
-            //String res = "Hex.encodeHexString(hashedBytes)";
             HexFormat commaFormat = HexFormat.of();
             return commaFormat.formatHex(hashedBytes);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
