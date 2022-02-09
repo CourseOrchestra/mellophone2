@@ -150,13 +150,15 @@ public final class AuthManager {
             // Читаем все настройки из XML...
             ConfigParser p = new ConfigParser();
             try {
-                SaxonTransformerFactory.newInstance().newTransformer().transform(new StreamSource(configFile), new SAXResult(p));
+                SaxonTransformerFactory.newInstance().newTransformer()
+                        .transform(new StreamSource(configFile), new SAXResult(p));
             } catch (Exception e) {
                 initializationError = "произошла ошибка при чтении файла конфигурации " + configFile.getCanonicalPath() + " " + e.getMessage();
                 return;
             }
 
-            if (loginProviders.stream().filter(lp -> "sqlserverext".equals(lp.getType())).collect(Collectors.toList()).size() > 1) {
+            if (loginProviders.stream().filter(lp -> "sqlserverext".equals(lp.getType())).collect(Collectors.toList())
+                    .size() > 1) {
                 initializationError = "файл конфигурации " + configFile.getCanonicalPath() + " содержит более одного sqlserverext провайдера аутентификации";
                 return;
             }
@@ -206,8 +208,10 @@ public final class AuthManager {
     private void commonInitialize() {
         loginProviders.forEach(lp -> lp.initialize());
 
-        authsessions = new ConcurrentHashMap<String, AuthSession>(authsessionsInitialCapacity, authsessionsLoadFactor, authsessionsConcurrencyLevel);
-        appsessions = new ConcurrentHashMap<String, String>(appsessionsInitialCapacity, appsessionsLoadFactor, appsessionsConcurrencyLevel);
+        authsessions = new ConcurrentHashMap<String, AuthSession>(authsessionsInitialCapacity, authsessionsLoadFactor,
+                authsessionsConcurrencyLevel);
+        appsessions = new ConcurrentHashMap<String, String>(appsessionsInitialCapacity, appsessionsLoadFactor,
+                appsessionsConcurrencyLevel);
 
         if (sessionTimeout > 0) {
             timerTimeout = new Timer();
@@ -236,7 +240,8 @@ public final class AuthManager {
         final Vector<AbstractLoginProvider> result = new Vector<AbstractLoginProvider>(1);
         final Vector<AbstractLoginProvider> taskPool = new Vector<AbstractLoginProvider>(loginProviders.size());
         for (AbstractLoginProvider p : loginProviders)
-            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(p.getGroupProviders())))
+            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(
+                    p.getGroupProviders())))
                 taskPool.add(p);
 
 
@@ -278,10 +283,14 @@ public final class AuthManager {
 
                             curProvider.connect(null, login, password, ip, ch, pw);
 
-                            if ((!"SQLLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName())) && (!"IASBPLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName()))) {
+                            if ((!"SQLLoginProvider".equalsIgnoreCase(curProvider.getClass()
+                                    .getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(
+                                    curProvider.getClass().getSimpleName())) && (!"IASBPLoginProvider".equalsIgnoreCase(
+                                    curProvider.getClass().getSimpleName()))) {
                                 curProvider.getUserInfoByName(ch, login, pw);
                                 if ("".equals(pw.toString().trim())) {
-                                    throw EAuthServerLogic.create(LOGIN_TO_PROVIDER_SUCCESSFUL_BUT_USER_NOT_FOUND_IN_BASE);
+                                    throw EAuthServerLogic.create(
+                                            LOGIN_TO_PROVIDER_SUCCESSFUL_BUT_USER_NOT_FOUND_IN_BASE);
                                 }
                             }
 
@@ -356,7 +365,8 @@ public final class AuthManager {
         final Vector<AbstractLoginProvider> result = new Vector<AbstractLoginProvider>(1);
         final Vector<AbstractLoginProvider> taskPool = new Vector<AbstractLoginProvider>(loginProviders.size());
         for (AbstractLoginProvider p : loginProviders)
-            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(p.getGroupProviders())))
+            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(
+                    p.getGroupProviders())))
                 taskPool.add(p);
 
 
@@ -403,7 +413,8 @@ public final class AuthManager {
                                 xw.writeStartDocument("utf-8", "1.0");
                                 xw.writeStartElement("providers");
                                 for (AbstractLoginProvider alp : loginProviders) {
-                                    if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(alp.getGroupProviders()))) {
+                                    if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(
+                                            groupProviders)) || (groupProviders.equals(alp.getGroupProviders()))) {
                                         xw.writeEmptyElement("provider");
                                         xw.writeAttribute("id", alp.getId());
                                         xw.writeAttribute("type", alp.getType());
@@ -516,7 +527,8 @@ public final class AuthManager {
             errlog.append("/getuserlist.\n");
 
             for (AbstractLoginProvider curProvider : loginProviders) {
-                if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(curProvider.getGroupProviders()))) {
+                if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(
+                        curProvider.getGroupProviders()))) {
 
                     try {
                         ProviderContextHolder ch = curProvider.newContextHolder();
@@ -553,7 +565,9 @@ public final class AuthManager {
             if (procPostProcessExtProvider != null) {
                 PostProcessResult ppr = null;
                 try {
-                    ppr = procPostProcessExtProvider.callProcPostProcess(sesid, login, false, null, ip, true, LockoutManager.getLockoutManager().getAttemptsCount(login), LockoutManager.getLockoutManager().getTimeToUnlock(login));
+                    ppr = procPostProcessExtProvider.callProcPostProcess(sesid, login, false, null, ip, true,
+                            LockoutManager.getLockoutManager().getAttemptsCount(login),
+                            LockoutManager.getLockoutManager().getTimeToUnlock(login));
                 } catch (Exception e) {
                     return e.getMessage();
                 }
@@ -562,7 +576,9 @@ public final class AuthManager {
             if (procPostProcessProvider != null) {
                 PostProcessResult ppr = null;
                 try {
-                    ppr = procPostProcessProvider.callProcPostProcess(null, sesid, login, false, null, ip, true, LockoutManager.getLockoutManager().getAttemptsCount(login), LockoutManager.getLockoutManager().getTimeToUnlock(login));
+                    ppr = procPostProcessProvider.callProcPostProcess(sesid, login, false, null, ip, true,
+                            LockoutManager.getLockoutManager().getAttemptsCount(login),
+                            LockoutManager.getLockoutManager().getTimeToUnlock(login));
                 } catch (Exception e) {
                     return e.getMessage();
                 }
@@ -605,7 +621,8 @@ public final class AuthManager {
         final Vector<AbstractLoginProvider> result = new Vector<AbstractLoginProvider>(1);
         final Vector<AbstractLoginProvider> taskPool = new Vector<AbstractLoginProvider>(loginProviders.size());
         for (AbstractLoginProvider p : loginProviders)
-            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(p.getGroupProviders())))
+            if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(
+                    p.getGroupProviders())))
                 taskPool.add(p);
 
         /**
@@ -649,10 +666,14 @@ public final class AuthManager {
 
                             curProvider.connect(sesid, login, password, ip, ch, pw);
 
-                            if ((!"SQLLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName())) && (!"IASBPLoginProvider".equalsIgnoreCase(curProvider.getClass().getSimpleName()))) {
+                            if ((!"SQLLoginProvider".equalsIgnoreCase(curProvider.getClass()
+                                    .getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(
+                                    curProvider.getClass().getSimpleName())) && (!"IASBPLoginProvider".equalsIgnoreCase(
+                                    curProvider.getClass().getSimpleName()))) {
                                 curProvider.getUserInfoByName(ch, login, pw);
                                 if ("".equals(sw.toString().trim())) {
-                                    throw EAuthServerLogic.create(LOGIN_TO_PROVIDER_SUCCESSFUL_BUT_USER_NOT_FOUND_IN_BASE);
+                                    throw EAuthServerLogic.create(
+                                            LOGIN_TO_PROVIDER_SUCCESSFUL_BUT_USER_NOT_FOUND_IN_BASE);
                                 }
                             }
 
@@ -726,7 +747,8 @@ public final class AuthManager {
             djangoauthid = userInfo.get(1);
         }
 
-        authsessions.put(authid, new AuthSession(login, password, result.get(0), authid, userInfo.get(0), ip, djangoauthid));
+        authsessions.put(authid,
+                new AuthSession(login, password, result.get(0), authid, userInfo.get(0), ip, djangoauthid));
         appsessions.put(sesid, authid);
 
         lockouts.success(login);
@@ -747,7 +769,8 @@ public final class AuthManager {
         }
 
         AuthSession as = authsessions.get(authid);
-        if (!(sesid.contains("django")) && (as.config != null) && "IASBPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) {
+        if (!(sesid.contains("django")) && (as.config != null) && "IASBPLoginProvider".equalsIgnoreCase(
+                as.config.getClass().getSimpleName())) {
             ((IASBPLoginProvider) as.config).disconnect(as.name, as.djangoauthid);
         }
 
@@ -773,7 +796,8 @@ public final class AuthManager {
         for (AuthSession as : authsessions.values()) {
             if (as.lastAuthenticated + MILLISECSINMINUTE * sessionTimeout < System.currentTimeMillis()) {
 
-                if ((as.config != null) && "IASBPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) {
+                if ((as.config != null) && "IASBPLoginProvider".equalsIgnoreCase(
+                        as.config.getClass().getSimpleName())) {
                     ((IASBPLoginProvider) as.config).disconnect(as.name, as.djangoauthid);
                 }
 
@@ -854,12 +878,16 @@ public final class AuthManager {
             as.lastAuthenticated = System.currentTimeMillis();
         }
 
-        if (as.getUserInfo().trim().isEmpty() && (as.config != null) && (!"IASBPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))) {
+        if (as.getUserInfo().trim().isEmpty() && (as.config != null) && (!"IASBPLoginProvider".equalsIgnoreCase(
+                as.config.getClass().getSimpleName()))) {
 
             try {
                 ProviderContextHolder context = as.config.newContextHolder();
                 try {
-                    if ((!"HTTPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) && (!"SQLLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))) {
+                    if ((!"HTTPLoginProvider".equalsIgnoreCase(
+                            as.config.getClass().getSimpleName())) && (!"SQLLoginProvider".equalsIgnoreCase(
+                            as.config.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(
+                            as.config.getClass().getSimpleName()))) {
                         as.config.connect(sesid, as.getName(), as.getPwd(), null, context, null);
                     }
                     as.config.getUserInfoByName(context, as.getName(), pw);
@@ -905,7 +933,10 @@ public final class AuthManager {
         try {
             ProviderContextHolder context = as.config.newContextHolder();
             try {
-                if ((!"HTTPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) && (!"SQLLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))) {
+                if ((!"HTTPLoginProvider".equalsIgnoreCase(
+                        as.config.getClass().getSimpleName())) && (!"SQLLoginProvider".equalsIgnoreCase(
+                        as.config.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(
+                        as.config.getClass().getSimpleName()))) {
                     as.config.connect(sesid, as.getName(), as.getPwd(), null, context, null);
                 }
                 as.config.getUserInfoByName(context, name, pw);
@@ -1126,10 +1157,12 @@ public final class AuthManager {
             throw EAuthServerLogic.create("Permission denied.");
         }
 
-        List<?> list = loginProviders.stream().filter(lp -> "sqlserverext".equals(lp.getType())).collect(Collectors.toList());
+        List<?> list = loginProviders.stream().filter(lp -> "sqlserverext".equals(lp.getType()))
+                .collect(Collectors.toList());
 
         if (list.size() == 0) {
-            throw EAuthServerLogic.create("Файл конфигурации config.xml не содержит sqlserverext провайдера аутентификации");
+            throw EAuthServerLogic.create(
+                    "Файл конфигурации config.xml не содержит sqlserverext провайдера аутентификации");
         }
 
         SQLExtLoginProvider p = (SQLExtLoginProvider) list.get(0);
@@ -1141,10 +1174,12 @@ public final class AuthManager {
             throw EAuthServerLogic.create("Permission denied.");
         }
 
-        List<?> list = loginProviders.stream().filter(lp -> "sqlserverext".equals(lp.getType())).collect(Collectors.toList());
+        List<?> list = loginProviders.stream().filter(lp -> "sqlserverext".equals(lp.getType()))
+                .collect(Collectors.toList());
 
         if (list.size() == 0) {
-            throw EAuthServerLogic.create("Файл конфигурации config.xml не содержит sqlserverext провайдера аутентификации");
+            throw EAuthServerLogic.create(
+                    "Файл конфигурации config.xml не содержит sqlserverext провайдера аутентификации");
         }
 
         SQLExtLoginProvider p = (SQLExtLoginProvider) list.get(0);
@@ -1156,10 +1191,12 @@ public final class AuthManager {
             throw EAuthServerLogic.create("Permission denied.");
         }
 
-        List<?> list = loginProviders.stream().filter(lp -> "sqlserverext".equals(lp.getType())).collect(Collectors.toList());
+        List<?> list = loginProviders.stream().filter(lp -> "sqlserverext".equals(lp.getType()))
+                .collect(Collectors.toList());
 
         if (list.size() == 0) {
-            throw EAuthServerLogic.create("Файл конфигурации config.xml не содержит sqlserverext провайдера аутентификации");
+            throw EAuthServerLogic.create(
+                    "Файл конфигурации config.xml не содержит sqlserverext провайдера аутентификации");
         }
 
         SQLExtLoginProvider p = (SQLExtLoginProvider) list.get(0);
@@ -1171,7 +1208,9 @@ public final class AuthManager {
             return;
         }
 
-        List<AuthSession> authUpdate = authsessions.entrySet().stream().filter(e -> oldLogin.equals(e.getValue().getName())).map(Map.Entry::getValue).collect(Collectors.toList());
+        List<AuthSession> authUpdate = authsessions.entrySet().stream()
+                .filter(e -> oldLogin.equals(e.getValue().getName())).map(Map.Entry::getValue)
+                .collect(Collectors.toList());
 
         authUpdate.forEach(as -> {
             as.setName(newLogin);
@@ -1185,7 +1224,8 @@ public final class AuthManager {
             return;
         }
 
-        List<String> authDel = authsessions.entrySet().stream().filter(e -> login.equals(e.getValue().getName())).map(e -> e.getKey()).collect(Collectors.toList());
+        List<String> authDel = authsessions.entrySet().stream().filter(e -> login.equals(e.getValue().getName()))
+                .map(e -> e.getKey()).collect(Collectors.toList());
 
         appsessions.values().removeAll(authDel);
 
@@ -1264,17 +1304,20 @@ public final class AuthManager {
         if (authsesid == null) {
             String authid = appsessions.get(djangosesid);
             if (authid == null) {
-                throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, djangosesid) + " Подробности: authsesid == null и не найден djangosesid.");
+                throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH,
+                        djangosesid) + " Подробности: authsesid == null и не найден djangosesid.");
             }
 
             as = authsessions.get(authid);
             if (as == null) {
-                throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, djangosesid) + " Подробности: authsesid == null и не найден authid.");
+                throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH,
+                        djangosesid) + " Подробности: authsesid == null и не найден authid.");
             }
         } else {
             as = authsessions.get(authsesid);
             if (as == null) {
-                throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, djangosesid) + " Подробности: authsesid != null, но не найден AuthSession.");
+                throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH,
+                        djangosesid) + " Подробности: authsesid != null, но не найден AuthSession.");
             }
 
             if (appsessions.get(djangosesid) == null) {
@@ -1502,7 +1545,8 @@ public final class AuthManager {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast()).setServertype(LDAPLoginProvider.ServerType.valueOf(value.trim()));
+                        ((LDAPLoginProvider) loginProviders.getLast()).setServertype(
+                                LDAPLoginProvider.ServerType.valueOf(value.trim()));
                 }
             });
             actions.put("url", new ParserAction() {
@@ -1519,9 +1563,11 @@ public final class AuthManager {
                     for (int i = 0; i < attributes.getLength(); i++) {
                         if (!("".equals(attributes.getValue(i).trim()))) {
                             if (loginProviders.getLast() instanceof SQLLoginProvider) {
-                                ((SQLLoginProvider) loginProviders.getLast()).addHikariProperty(attributes.getQName(i).trim(), attributes.getValue(i).trim());
+                                ((SQLLoginProvider) loginProviders.getLast()).addHikariProperty(
+                                        attributes.getQName(i).trim(), attributes.getValue(i).trim());
                             } else {
-                                ((SQLExtLoginProvider) loginProviders.getLast()).addHikariProperty(attributes.getQName(i).trim(), attributes.getValue(i).trim());
+                                ((SQLExtLoginProvider) loginProviders.getLast()).addHikariProperty(
+                                        attributes.getQName(i).trim(), attributes.getValue(i).trim());
                             }
                         }
                     }
@@ -1685,7 +1731,8 @@ public final class AuthManager {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((LDAPLoginProvider) loginProviders.getLast()).setSat(LDAPLoginProvider.SecurityAuthenticationType.valueOf(value));
+                        ((LDAPLoginProvider) loginProviders.getLast()).setSat(
+                                LDAPLoginProvider.SecurityAuthenticationType.valueOf(value));
 
                 }
             });
@@ -1715,7 +1762,8 @@ public final class AuthManager {
                 void startElement(Attributes attributes) {
                     for (int i = 0; i < attributes.getLength(); i++) {
                         if (!("".equals(attributes.getValue(i).trim()))) {
-                            (loginProviders.getLast()).addReturningAttributes(attributes.getQName(i).trim(), attributes.getValue(i).trim());
+                            (loginProviders.getLast()).addReturningAttributes(attributes.getQName(i).trim(),
+                                    attributes.getValue(i).trim());
                         }
                     }
                 }
@@ -1842,7 +1890,8 @@ public final class AuthManager {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0)
-                        ((SQLLoginProvider) loginProviders.getLast()).setAuthMethod(SQLLoginProvider.AuthMethod.valueOf(value.trim()));
+                        ((SQLLoginProvider) loginProviders.getLast()).setAuthMethod(
+                                SQLLoginProvider.AuthMethod.valueOf(value.trim()));
                 }
             });
 

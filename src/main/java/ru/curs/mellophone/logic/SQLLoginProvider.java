@@ -3,31 +3,28 @@ package ru.curs.mellophone.logic;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.HexFormat;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.isNull;
@@ -51,10 +48,11 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     private static final String PBKDF2_PASSWORD_DIVIDER = "\\$";
     private static final String PBKDF2_ALG_DIVIDER = ":";
 
-    private static ConcurrentHashMap<String, MessageDigest> mdPool = new ConcurrentHashMap<String, MessageDigest>(4);
+    private static final ConcurrentHashMap<String, MessageDigest> mdPool = new ConcurrentHashMap<String, MessageDigest>(
+            4);
     private final HashMap<String, String> searchReturningAttributes = new HashMap<String, String>();
+    private final Properties hikariProperties = new Properties();
     private HikariDataSource dataSource = null;
-    private Properties hikariProperties = new Properties();
     private JdbcTemplate jdbcTemplate;
     private String connectionUsername;
     private String connectionPassword;
@@ -66,8 +64,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
     private String localSecuritySalt = "";
     private String procPostProcess = null;
     private AuthMethod authMethod = AuthMethod.CHECK;
-
-
 
 
     /**
@@ -195,20 +191,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         return dataSource.getConnection();
     }
 
-
-    private static class CredentialsRowMapper implements RowMapper<Object[]> {
-        @Override
-        public Object[] mapRow(ResultSet rs, int rowNum) throws SQLException {
-            final int columnCount = rs.getMetaData().getColumnCount();
-            Object[] values = new Object[columnCount];
-            for (int i = 1; i <= columnCount; i++) {
-                values[i - 1] = rs.getObject(i);
-            }
-            return values;
-        }
-    }
-
-
     @Override
     void connect(String sesid, String login, String password, String ip, ProviderContextHolder context, PrintWriter pw) throws EAuthServerLogic {
 
@@ -224,19 +206,13 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         String sql = "";
         BadLoginType blt = BadLoginType.BAD_CREDENTIALS;
         try {
-
-
-            sql = String.format("SELECT \"%s\", %s FROM \"%s\" WHERE lower(\"%s\") = ?", fieldPassword, getSelectFields(), table, fieldLogin);
-            List<Object[]> credentials = jdbcTemplate.query(sql, new SQLLoginProvider.CredentialsRowMapper(), login);
+            sql = String.format("SELECT \"%s\", %s FROM \"%s\" WHERE \"%s\" = ?", fieldPassword, getSelectFields(),
+                    table, fieldLogin);
+            List<Credentials> credentials = jdbcTemplate.query(sql, new SQLLoginProvider.CredentialsRowMapper(), login);
             if (credentials.size() == 1) {
 
-
-
-
-/*
-
                 if ((procPostProcess == null) && (fieldBlocked != null)) {
-                    if (credentials.get(fieldBlocked)) {
+                    if (credentials.get(0).blocked) {
                         success = false;
                         message = String.format(USER_IS_BLOCKED_PERMANENTLY, login);
                         blt = BadLoginType.USER_BLOCKED_PERMANENTLY;
@@ -245,38 +221,50 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
                 if (blt != BadLoginType.USER_BLOCKED_PERMANENTLY) {
 
-                    String pwdComplex = rs.getString(fieldPassword);
-                    success = (pwdComplex != null) && ((!AuthManager.getTheManager().isCheckPasswordHashOnly()) && pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password));
+                    String pwdComplex = credentials.get(0).getPwd();
+                    success = nonNull(pwdComplex)
+                            &&
+                            (
+                                    (!AuthManager.getTheManager().isCheckPasswordHashOnly())
+                                            && pwdComplex.equals(password)
+                                            || checkPasswordHash(pwdComplex, password)
+                            );
 
                     StringWriter sw = new StringWriter();
-                    writeReturningAttributes(sw, rs);
+                    XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(sw);
+                    xw.writeStartDocument("utf-8", "1.0");
+                    xw.writeEmptyElement("user");
+                    String[] attrs = credentials.get(0).getUserAttrs().keySet().toArray(new String[0]);
+                    for (String attr : attrs) {
+                        writeXMLAttr(xw, attr, credentials.get(0).getUserAttrs().get(attr));
+                    }
+                    xw.writeEndDocument();
+                    xw.flush();
                     sw.flush();
 
                     if (procPostProcess != null) {
-
-                        PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, success, sw.toString(), ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
+                        PostProcessResult ppr = callProcPostProcess(sesid, login, success,
+                                sw.toString(), ip, false,
+                                LockoutManager.getLockoutManager().getAttemptsCount(login) + 1,
+                                LockoutManager.getLockoutTime() * 60);
                         success = success && ppr.isSuccess();
                         message = ppr.getMessage();
-
                     } else {
                         if (success) {
                             message = USER_LOGIN + login + "' в '" + getConnectionUrl() + "' успешен!";
                         }
                     }
 
-
                     if (success && (pw != null)) {
                         pw.append(sw.toString());
                     }
-
                 }
 
-*/
-
-
-            }else{
+            } else {
                 if (procPostProcess != null) {
-                    PostProcessResult ppr = callProcPostProcess(((SQLLink) context).conn, sesid, login, false, null, ip, false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1, LockoutManager.getLockoutTime() * 60);
+                    PostProcessResult ppr = callProcPostProcess(sesid, login, false, null, ip,
+                            false, LockoutManager.getLockoutManager().getAttemptsCount(login) + 1,
+                            LockoutManager.getLockoutTime() * 60);
                     message = ppr.getMessage();
                 }
             }
@@ -303,43 +291,24 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
     }
 
-    private void writeReturningAttributes(Writer writer, ResultSet rs) throws XMLStreamException, FactoryConfigurationError, SQLException {
-        String[] attrs = searchReturningAttributes.keySet().toArray(new String[0]);
-        XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
+    public PostProcessResult callProcPostProcess(String sesid, String login, boolean isauth, String attributes, String ip, boolean islocked, int attemptsCount, long timeToUnlock) {
 
-        xw.writeStartDocument("utf-8", "1.0");
-        xw.writeEmptyElement("user");
-        for (String attr : attrs) {
-            writeXMLAttr(xw, attr, rs.getString(searchReturningAttributes.get(attr)));
-        }
-        xw.writeEndDocument();
-        xw.flush();
-    }
+        SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate).withProcedureName(procPostProcess)
+                .declareParameters(new SqlOutParameter("ret", Types.INTEGER),
+                        new SqlOutParameter("message", Types.VARCHAR));
 
-    public PostProcessResult callProcPostProcess(Connection conn, String sesid, String login, boolean isauth, String attributes, String ip, boolean islocked, int attemptsCount, long timeToUnlock) throws SQLException {
+        SqlParameterSource in = new MapSqlParameterSource().addValue("sesid", sesid).addValue("userlogin", login)
+                .addValue("userauth", isauth).addValue("userattributes", attributes).addValue("userip", ip)
+                .addValue("userlocked", islocked).addValue("userloginattempts", attemptsCount)
+                .addValue("usertimetounlock", timeToUnlock);
 
-        if (conn == null) {
-            conn = getConnection();
-        }
+        Map<String, Object> out = simpleJdbcCall.execute(in);
 
-        CallableStatement cs = conn.prepareCall(String.format("{? = call %s (?, ?, ?, ?, ?, ?, ?, ?, ?)}", procPostProcess));
-
-        cs.registerOutParameter(1, Types.INTEGER);
-        cs.setString(2, sesid);
-        cs.setString(3, login);
-        cs.setBoolean(4, isauth);
-        cs.setString(5, attributes);
-        cs.setString(6, ip);
-        cs.setBoolean(7, islocked);
-        cs.setInt(8, attemptsCount);
-        cs.setLong(9, timeToUnlock);
-        cs.registerOutParameter(10, Types.VARCHAR);
-
-        cs.execute();
-
-        return new PostProcessResult(cs.getInt(1) == 0, "Stored procedure message begin: " + cs.getString(10) + " Stored procedure message end.");
+        return new PostProcessResult(((int) out.get("ret")) == 0,
+                "Stored procedure message begin: " + out.get("message") + " Stored procedure message end.");
 
     }
+
 
     private boolean checkPasswordHash(String pwdComplex, String password) throws UnsupportedEncodingException, EAuthServerLogic {
 
@@ -417,10 +386,11 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
         String sql = "";
         try {
-            ((SQLLink) context).conn = getConnection();
+            //            ((SQLLink) context).conn = getConnection();
 
             sql = String.format("SELECT %s FROM \"%s\" WHERE lower(\"%s\") = ?", getSelectFields(), table, fieldLogin);
-            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
+            //PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
+            PreparedStatement stat = null;
             stat.setString(1, name.toLowerCase());
 
             boolean hasResult = stat.execute();
@@ -466,13 +436,19 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
         String sql = "";
         try {
+
+
+/*
             if (((SQLLink) context).conn == null) {
                 ((SQLLink) context).conn = getConnection();
             }
+*/
+
 
             sql = String.format("SELECT %s FROM \"%s\" ORDER BY \"%s\"", getSelectFields(), table, fieldLogin);
 
-            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
+            //PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
+            PreparedStatement stat = null;
 
             boolean hasResult = stat.execute();
             if (hasResult) {
@@ -516,17 +492,19 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
         String sql = "";
         try {
-            ((SQLLink) context).conn = getConnection();
+            //((SQLLink) context).conn = getConnection();
 
             sql = String.format("UPDATE \"%s\" SET \"%s\" = ? WHERE \"%s\" = ?", table, fieldPassword, fieldLogin);
 
-            PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
+            //PreparedStatement stat = ((SQLLink) context).conn.prepareStatement(sql);
+            PreparedStatement stat = null;
 
 
             SecureRandom r = new SecureRandom();
             String salt = String.format("%016x", r.nextLong()) + String.format("%016x", r.nextLong());
 
-            String password = getHashAlgorithm1(hashAlgorithm) + PASSWORD_DIVIDER + salt + PASSWORD_DIVIDER + getHash(newpwd + salt + localSecuritySalt, hashAlgorithm);
+            String password = getHashAlgorithm1(hashAlgorithm) + PASSWORD_DIVIDER + salt + PASSWORD_DIVIDER + getHash(
+                    newpwd + salt + localSecuritySalt, hashAlgorithm);
 
 
             stat.setString(1, password);
@@ -575,7 +553,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
         synchronized (md) {
             md.reset();
-            md.update(input.getBytes("UTF-8"));
+            md.update(input.getBytes(StandardCharsets.UTF_8));
             return asHex(md.digest());
         }
 
@@ -605,7 +583,6 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         return input.toUpperCase().replace("SHA", "SHA-");
     }
 
-
     /**
      * Тип метода аутентификации.
      */
@@ -620,20 +597,66 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
         MSSQL, POSTGRESQL, ORACLE, FIREBIRD
     }
 
+    private static class Credentials {
+        private final HashMap<String, String> userAttrs = new HashMap<String, String>();
+        private String login;
+        private String pwd;
+        private boolean blocked = false;
+
+        public String getLogin() {
+            return login;
+        }
+
+        public void setLogin(String login) {
+            this.login = login;
+        }
+
+        public String getPwd() {
+            return pwd;
+        }
+
+        public void setPwd(String pwd) {
+            this.pwd = pwd;
+        }
+
+        public boolean getBlocked() {
+            return blocked;
+        }
+
+        public void setBlocked(boolean blocked) {
+            this.blocked = blocked;
+        }
+
+        public HashMap<String, String> getUserAttrs() {
+            return userAttrs;
+        }
+    }
+
+    private class CredentialsRowMapper implements RowMapper<SQLLoginProvider.Credentials> {
+        @Override
+        public SQLLoginProvider.Credentials mapRow(ResultSet rs, int rowNum) throws SQLException {
+            SQLLoginProvider.Credentials credentials = new Credentials();
+            credentials.setLogin(rs.getString(fieldLogin));
+            credentials.setPwd(rs.getString(fieldPassword));
+            if (fieldBlocked != null) {
+                credentials.setBlocked(rs.getBoolean(fieldBlocked));
+            }
+            String[] attrs = searchReturningAttributes.keySet().toArray(new String[0]);
+            for (String attr : attrs) {
+                credentials.getUserAttrs().put(attr, rs.getString(searchReturningAttributes.get(attr)));
+            }
+            return credentials;
+        }
+    }
+
     /**
      * Контекст соединения с базой данных.
      */
-    private class SQLLink extends ProviderContextHolder {
-        private Connection conn = null;
-
+    private static class SQLLink extends ProviderContextHolder {
         @Override
         void closeContext() {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
+
 
 }
