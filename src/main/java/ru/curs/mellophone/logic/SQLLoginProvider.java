@@ -28,6 +28,7 @@ import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.lang.Math.min;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -254,7 +255,7 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
 
     private boolean checkPasswordHash(String pwdComplex, String password) throws EAuthServerLogic {
 
-        if (PBKDF2.equalsIgnoreCase(pwdComplex.substring(0, PBKDF2.length()))) {
+        if (PBKDF2.equalsIgnoreCase(pwdComplex.substring(0, min(pwdComplex.length(), PBKDF2.length())))) {
             String[] pwdParts = pwdComplex.split(PBKDF2_PASSWORD_DIVIDER);
 
             String alg = pwdParts[0];
