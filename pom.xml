@@ -6,7 +6,7 @@
 
     <groupId>ru.curs</groupId>
     <artifactId>mellophone2</artifactId>
-    <version>1.0.79</version>
+    <version>1.0.80</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -52,6 +52,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
