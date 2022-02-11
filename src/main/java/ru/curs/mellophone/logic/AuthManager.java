@@ -18,6 +18,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.nonNull;
+
 
 /**
  * Менеджер системы аутентификации.
@@ -864,34 +866,30 @@ public final class AuthManager {
             as.lastAuthenticated = System.currentTimeMillis();
         }
 
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        PrintWriter pw = new PrintWriter(os);
-
-        if (as.getUserInfo().trim().isEmpty() && (as.config != null) && (!"IASBPLoginProvider".equalsIgnoreCase(
-                as.config.getClass().getSimpleName()))) {
-
+        if (as.getUserInfo().trim().isEmpty() && nonNull(as.config)
+                && (!"IASBPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))) {
             try {
                 ProviderContextHolder context = as.config.newContextHolder();
                 try {
-                    if ((!"HTTPLoginProvider".equalsIgnoreCase(
-                            as.config.getClass().getSimpleName())) && (!"SQLLoginProvider".equalsIgnoreCase(
-                            as.config.getClass().getSimpleName())) && (!"SQLExtLoginProvider".equalsIgnoreCase(
-                            as.config.getClass().getSimpleName()))) {
+                    if ((!"HTTPLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))
+                            && (!"SQLLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))
+                            && (!"SQLExtLoginProvider".equalsIgnoreCase(as.config.getClass().getSimpleName()))) {
                         as.config.connect(sesid, as.getName(), as.getPwd(), null, context, null);
                     }
+                    ByteArrayOutputStream os = new ByteArrayOutputStream();
+                    PrintWriter pw = new PrintWriter(os);
                     as.config.getUserInfoByName(context, as.getName(), pw);
+                    pw.flush();
+                    as.setUserInfo(os.toString());
                 } finally {
                     context.closeContext();
                 }
             } catch (Exception e) {
                 throw EAuthServerLogic.create(String.format(PROVIDER_ERROR, e.getMessage()));
             }
-        } else {
-            pw.append(as.getUserInfo());
         }
 
-        pw.flush();
-        return os.toString();
+        return as.getUserInfo();
 
     }
 
