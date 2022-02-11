@@ -1406,6 +1406,7 @@ public final class AuthManager {
         }
     }
 
+
     public void setState(String sesid, String state) {
         String authid = appsessions.get(sesid);
         if (authid == null) {
@@ -1419,6 +1420,21 @@ public final class AuthManager {
 
         as.setState(state);
     }
+
+    public String getState(String sesid) {
+        String authid = appsessions.get(sesid);
+        if (authid == null) {
+            throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__1"));
+        }
+
+        AuthSession as = authsessions.get(authid);
+        if (as == null) {
+            throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__2"));
+        }
+
+        return as.getState();
+    }
+
 
     /**
      * Аутентифицированная сессия. Содержит закэшированный (в оперативной

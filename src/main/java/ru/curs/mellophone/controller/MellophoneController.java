@@ -170,6 +170,11 @@ public class MellophoneController {
         mellophoneService.setstate(sesid, state);
     }
 
+    @RequestMapping("/getstate")
+    public String getstate(@NotNull String sesid) {
+        return mellophoneService.getstate(sesid);
+    }
+
 }
 
 

@@ -187,6 +187,11 @@ public record MellophoneService(MellophoneProperties properties) {
     public void setstate(String sesid, String state) {
         AuthManager.getTheManager().setState(sesid, state);
     }
+
+    public String getstate(String sesid) {
+        return AuthManager.getTheManager().getState(sesid);
+    }
+
 }
 
 
