@@ -11,6 +11,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 
 @Validated
 @RestController
@@ -134,8 +137,8 @@ public class MellophoneController {
 
         String authsesidNew = mellophoneService.authenticationgif(sesid, authsesid);
         String banner;
-        if (authsesidNew == null) {
-            if (authsesid != null) {
+        if (isNull(authsesidNew)) {
+            if (nonNull(authsesid)) {
                 Cookie cookie = new Cookie("authsesid", null);
                 cookie.setMaxAge(0);
                 response.addCookie(cookie);
@@ -152,7 +155,7 @@ public class MellophoneController {
         InputStream in = getClass().getResourceAsStream(DIR_IMAGES + banner);
         byte[] array;
         try {
-            assert in != null;
+            assert nonNull(in);
             array = in.readAllBytes();
         } catch (Exception e) {
             e.printStackTrace();

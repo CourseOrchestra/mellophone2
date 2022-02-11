@@ -12,6 +12,9 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 @Service
 public record MellophoneService(MellophoneProperties properties) {
 
@@ -26,14 +29,14 @@ public record MellophoneService(MellophoneProperties properties) {
     }
 
     public void login(String sesid, String gp, String login, String pwd, String ip) {
-        if (gp == null) {
+        if (isNull(gp)) {
             gp = AuthManager.GROUP_PROVIDERS_ALL;
         }
         if (AuthManager.GROUP_PROVIDERS_NOT_DEFINE.equalsIgnoreCase(gp)) {
             gp = "";
         }
 
-        if ((ip != null) && ip.isEmpty()) {
+        if (nonNull(ip) && ip.isEmpty()) {
             ip = null;
         }
 
@@ -49,7 +52,7 @@ public record MellophoneService(MellophoneProperties properties) {
     }
 
     public String isauthenticated(String sesid, String ip) {
-        if ((ip != null) && ip.isEmpty()) {
+        if (nonNull(ip) && ip.isEmpty()) {
             ip = null;
         }
 
@@ -69,14 +72,14 @@ public record MellophoneService(MellophoneProperties properties) {
     }
 
     public String getproviderlist(String gp, String login, String pwd, String ip) {
-        if (gp == null) {
+        if (isNull(gp)) {
             gp = AuthManager.GROUP_PROVIDERS_ALL;
         }
         if (AuthManager.GROUP_PROVIDERS_NOT_DEFINE.equalsIgnoreCase(gp)) {
             gp = "";
         }
 
-        if ((ip != null) && ip.isEmpty()) {
+        if (nonNull(ip) && ip.isEmpty()) {
             ip = null;
         }
 
@@ -96,14 +99,14 @@ public record MellophoneService(MellophoneProperties properties) {
     }
 
     public String checkcredentials(String gp, String login, String pwd, String ip) {
-        if (gp == null) {
+        if (isNull(gp)) {
             gp = AuthManager.GROUP_PROVIDERS_ALL;
         }
         if (AuthManager.GROUP_PROVIDERS_NOT_DEFINE.equalsIgnoreCase(gp)) {
             gp = "";
         }
 
-        if ((ip != null) && ip.isEmpty()) {
+        if (nonNull(ip) && ip.isEmpty()) {
             ip = null;
         }
 
@@ -115,14 +118,14 @@ public record MellophoneService(MellophoneProperties properties) {
     }
 
     public String getuserlist(String pid, String gp, String token, String ip) {
-        if (gp == null) {
+        if (isNull(gp)) {
             gp = AuthManager.GROUP_PROVIDERS_ALL;
         }
         if (AuthManager.GROUP_PROVIDERS_NOT_DEFINE.equalsIgnoreCase(gp)) {
             gp = "";
         }
 
-        if ((ip != null) && ip.isEmpty()) {
+        if (nonNull(ip) && ip.isEmpty()) {
             ip = null;
         }
 
