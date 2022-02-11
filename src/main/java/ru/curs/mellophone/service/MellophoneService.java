@@ -56,11 +56,7 @@ public record MellophoneService(MellophoneProperties properties) {
             ip = null;
         }
 
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        PrintWriter pw = new PrintWriter(os);
-        AuthManager.getTheManager().isAuthenticated(sesid, ip, pw);
-        pw.flush();
-        return os.toString();
+        return AuthManager.getTheManager().isAuthenticated(sesid, ip);
     }
 
     public String checkname(String sesid, String name) {

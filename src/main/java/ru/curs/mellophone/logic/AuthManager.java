@@ -842,18 +842,7 @@ public final class AuthManager {
         }
     }
 
-    /**
-     * Возвращает информацию о пользователе, если сессия с идентификатором
-     * сессии приложения sesid аутентифицирована, выбрасывает EAuthServerLogic
-     * -- если сессия с идентификатором sesid не аутентифицирована.
-     *
-     * @param sesid Идентификатор сессии.
-     * @param ip    ip сессии.
-     * @param pw    PrintWriter, в который выводится информация о пользователе в
-     *              формате XML
-     * @throws EAuthServerLogic Если сессия с идентификатором sesid не аутентифицирована
-     */
-    public void isAuthenticated(String sesid, String ip, PrintWriter pw) throws EAuthServerLogic {
+    public String isAuthenticated(String sesid, String ip) throws EAuthServerLogic {
 
         String authid = appsessions.get(sesid);
         if (authid == null) {
@@ -874,6 +863,9 @@ public final class AuthManager {
         if (sessionTimeout > 0) {
             as.lastAuthenticated = System.currentTimeMillis();
         }
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PrintWriter pw = new PrintWriter(os);
 
         if (as.getUserInfo().trim().isEmpty() && (as.config != null) && (!"IASBPLoginProvider".equalsIgnoreCase(
                 as.config.getClass().getSimpleName()))) {
@@ -897,6 +889,9 @@ public final class AuthManager {
         } else {
             pw.append(as.getUserInfo());
         }
+
+        pw.flush();
+        return os.toString();
 
     }
 
