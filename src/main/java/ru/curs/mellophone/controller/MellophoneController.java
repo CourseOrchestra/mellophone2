@@ -162,6 +162,10 @@ public class MellophoneController {
         return array;
     }
 
+    @PostMapping("/setstate")
+    public void setstate(@NotNull String sesid, @RequestBody @NotNull String state) {
+        mellophoneService.setstate(sesid, state);
+    }
 
 }
 

@@ -37,9 +37,6 @@ public final class AuthManager {
      * Директория с настройками.
      */
     public static final String DIR_CONFIG = "config/";
-    private static final String MELLOPHONE_CONFIG_PATH = "mellophone.config.path";
-    private static final String LOG4J_CONFIG_PATH = "log4j.config.path";
-    private static final String GENERAL_PROPERTIES = "general.properties";
     private static final String ERROR_PARSING_CONFIG_XML = "Ошибка при разборе файла конфигурации config.xml: %s";
     private static final String SESID_NOT_AUTH = "Сессия приложения с идентификатором %s не аутентифицирована.";
     private static final String PROVIDER_ERROR = "При взаимодействии с логин-провайдером произошла следующая ошибка: %s";
@@ -1416,6 +1413,19 @@ public final class AuthManager {
         }
     }
 
+    public void setState(String sesid, String state) {
+        String authid = appsessions.get(sesid);
+        if (authid == null) {
+            throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__1"));
+        }
+
+        AuthSession as = authsessions.get(authid);
+        if (as == null) {
+            throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__2"));
+        }
+
+        as.setState(state);
+    }
 
     /**
      * Аутентифицированная сессия. Содержит закэшированный (в оперативной
@@ -1431,6 +1441,7 @@ public final class AuthManager {
         private String name;
         private String pwd;
         private long lastAuthenticated = System.currentTimeMillis();
+        private String state = null;
 
         public AuthSession(String name, String pwd, AbstractLoginProvider config, final String authid, final String userInfo, final String ip, final String djangoauthid) {
             this.name = name;
@@ -1440,7 +1451,6 @@ public final class AuthManager {
             this.userInfo = userInfo;
             this.ip = ip;
             this.djangoauthid = djangoauthid;
-
         }
 
         public String getName() {
@@ -1471,6 +1481,13 @@ public final class AuthManager {
             return ip;
         }
 
+        public String getState() {
+            return state;
+        }
+
+        public void setState(String state) {
+            this.state = state;
+        }
     }
 
     /**
@@ -1920,4 +1937,6 @@ public final class AuthManager {
         }
 
     }
+
+
 }
