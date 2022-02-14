@@ -58,7 +58,7 @@ jobs:
           server: share.curs.ru
           username: ${{ secrets.FTP_CURS_LOGIN }}
           password: ${{ secrets.FTP_CURS_PWD }}
-          server-dir: development/curs-timeline/
+          server-dir: development/curs-mellophone2/
           local-dir: ./artifact_for_ftp/          
        
 
