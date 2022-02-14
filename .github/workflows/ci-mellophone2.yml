@@ -35,7 +35,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
        name: mellophone2-${{ steps.projectversiongroup.outputs.version }}
-       path: target/mellophone2-*.jar; target/classes/application.yml 
-       
+       path: 
+         target/mellophone2-*.jar
+         target/classes/application.yml 
+         target/classes/config.xml
        
 
