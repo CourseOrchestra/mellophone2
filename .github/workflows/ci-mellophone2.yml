@@ -30,13 +30,11 @@ jobs:
       run: mvn clean package      
     - name: Extract pom project version
       run: echo ::set-output name=version::$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-      id: projectversiongroup
-    - name: Show extracted pom project version
-      run: echo ${{ steps.projectversiongroup.outputs.version }}      
+      id: projectversiongroup      
     - name: Copy production artifacts
       uses: actions/upload-artifact@v2
       with:
-       name: mellophone2_${{ steps.projectversiongroup.outputs.version }}_build-${{ github.run_number }}
+       name: mellophone2-${{ steps.projectversiongroup.outputs.version }}
        path: target/mellophone2-*.jar   
        
 
