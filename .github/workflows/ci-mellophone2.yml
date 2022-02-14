@@ -43,9 +43,9 @@ jobs:
     - uses: papeloto/action-zip@v1
       with:
        files: 
-         target/mellophone2-*.jar
-         target/classes/application.yml => application.yml
-         target/classes/config/config.xml => config.xml
+         target/mellophone2-${{ steps.projectversiongroup.outputs.version }}.jar
+         target/classes/application.yml
+         target/classes/config/config.xml
        dest: ./artifact_for_ftp/mellophone2-${{ steps.projectversiongroup.outputs.version }}.zip     
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
