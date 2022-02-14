@@ -37,7 +37,7 @@ jobs:
        name: mellophone2-${{ steps.projectversiongroup.outputs.version }}
        path: |
          target/mellophone2-*.jar
-         target/classes/application.yml 
-         target/classes/config.xml
+         target/classes/application.yml => application.yml
+         target/classes/config/config.xml => config.xml
        
 
