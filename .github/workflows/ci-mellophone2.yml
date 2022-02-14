@@ -31,5 +31,5 @@ jobs:
     - name: Copy production artifacts
       uses: actions/upload-artifact@v2
       with:
-       name: mellophone2_build-${{ github.run_number }}
+       #name: mellophone2_build-${{ github.run_number }}
        path: target/mellophone2-*.jar   
