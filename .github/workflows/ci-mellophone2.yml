@@ -52,5 +52,13 @@ jobs:
       with:
           name: mellophone2-${{ steps.projectversiongroup.outputs.version }}
           path: ./artifact_for_ftp/mellophone2-${{ steps.projectversiongroup.outputs.version }}.zip
+    - name: 📂 Upload artifact to ftp
+      uses: SamKirkland/FTP-Deploy-Action@4.0.0
+      with:
+          server: share.curs.ru
+          username: ${{ secrets.FTP_CURS_LOGIN }}
+          password: ${{ secrets.FTP_CURS_PWD }}
+          server-dir: development/curs-timeline/
+          local-dir: ./artifact_for_ftp/          
        
 
