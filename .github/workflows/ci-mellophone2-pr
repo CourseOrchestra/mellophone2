@@ -7,6 +7,8 @@ name: ci-mellophone2-pr
 on:
   pull_request:
     branches: [ main ]
+    types:
+      - opened
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
