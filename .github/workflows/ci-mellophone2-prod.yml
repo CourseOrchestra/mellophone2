@@ -29,15 +29,6 @@ jobs:
     - name: Extract pom project version
       run: echo ::set-output name=version::$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
       id: projectversiongroup      
-    #- name: Copy production artifacts
-    #  uses: actions/upload-artifact@v2
-    #  with:
-    #   name: mellophone2-${{ steps.projectversiongroup.outputs.version }}
-    #   path: |
-    #     target/mellophone2-*.jar
-    #     target/classes/application.yml => application.yml
-    #     target/classes/config/config.xml => config.xml
-    #         name: Create zip of dist for downloading to ftp
     - uses: papeloto/action-zip@v1
       with:
        files: 
