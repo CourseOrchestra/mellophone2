@@ -156,14 +156,10 @@ public final class SQLExtLoginProvider extends AbstractLoginProvider {
             List<Credentials> credentials = jdbcTemplate.query(query, new CredentialsRowMapper(), login);
             if (credentials.size() == 1) {
                 String pwdComplex = credentials.get(0).getPwd();
-                success = nonNull(pwdComplex)
-                        &&
-                        (
-                                (!AuthManager.getTheManager().isCheckPasswordHashOnly())
-                                        && pwdComplex.equals(password)
-                                        || checkPasswordHash(pwdComplex, password)
-                        );
-
+                success = AuthManager.getTheManager().isCheckPasswordHashOnly()
+                        ? checkPasswordHash(pwdComplex, password)
+                        : pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password);
+                
                 StringWriter sw = new StringWriter();
                 writeReturningAttributes(credentials.get(0), sw);
                 sw.flush();

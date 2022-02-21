@@ -166,13 +166,9 @@ public final class SQLLoginProvider extends AbstractLoginProvider {
                 if (blt != BadLoginType.USER_BLOCKED_PERMANENTLY) {
 
                     String pwdComplex = credentials.get(0).getPwd();
-                    success = nonNull(pwdComplex)
-                            &&
-                            (
-                                    (!AuthManager.getTheManager().isCheckPasswordHashOnly())
-                                            && pwdComplex.equals(password)
-                                            || checkPasswordHash(pwdComplex, password)
-                            );
+                    success = AuthManager.getTheManager().isCheckPasswordHashOnly()
+                            ? checkPasswordHash(pwdComplex, password)
+                            : pwdComplex.equals(password) || checkPasswordHash(pwdComplex, password);
 
                     StringWriter sw = new StringWriter();
                     XMLStreamWriter xw = XMLOutputFactory.newInstance().createXMLStreamWriter(sw);
