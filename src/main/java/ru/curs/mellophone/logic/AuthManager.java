@@ -16,6 +16,7 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 
@@ -96,7 +97,7 @@ public final class AuthManager {
      * аутентификации.
      */
     public static AuthManager getTheManager() {
-        if (theMANAGER == null) {
+        if (isNull(theMANAGER)) {
             theMANAGER = new AuthManager();
         }
         return theMANAGER;
@@ -110,7 +111,7 @@ public final class AuthManager {
      * Destroy приложения в рабочем режиме.
      */
     public void productionModeDestroy() {
-        if (timerTimeout != null) {
+        if (nonNull(timerTimeout)) {
             timerTimeout.cancel();
         }
     }
@@ -239,13 +240,12 @@ public final class AuthManager {
                 synchronized (taskPool) {
                     return taskPool.size() == 0 ? null : taskPool.remove(taskPool.size() - 1);
                 }
-
             }
 
             @Override
             public void run() {
                 AbstractLoginProvider curProvider = getNext();
-                while (curProvider != null) {
+                while (nonNull(curProvider)) {
                     try {
                         ProviderContextHolder ch = curProvider.newContextHolder();
                         try {
@@ -363,7 +363,7 @@ public final class AuthManager {
             @Override
             public void run() {
                 AbstractLoginProvider curProvider = getNext();
-                while (curProvider != null) {
+                while (nonNull(curProvider)) {
                     try {
                         ProviderContextHolder ch = curProvider.newContextHolder();
                         try {
@@ -448,11 +448,11 @@ public final class AuthManager {
 
     public void getUserList(final String providerId, final String groupProviders, String token, final PrintWriter pw) throws EAuthServerLogic {
 
-        if ((getuserlistToken == null) || (!getuserlistToken.equals(token))) {
+        if (isNull(getuserlistToken) || (!getuserlistToken.equals(token))) {
             throw EAuthServerLogic.create("Permission denied.");
         }
 
-        if (providerId != null) {
+        if (nonNull(providerId)) {
 
             AbstractLoginProvider curProvider = null;
 
@@ -463,7 +463,7 @@ public final class AuthManager {
                 }
             }
 
-            if (curProvider == null) {
+            if (isNull(curProvider)) {
                 String s = String.format("/getuserlist (pid = %s). Провайдер не найден.", providerId);
                 LOGGER.error(s);
                 throw EAuthServerLogic.create(s);
@@ -489,7 +489,7 @@ public final class AuthManager {
             errlog.append("/getuserlist.\n");
 
             for (AbstractLoginProvider curProvider : loginProviders) {
-                if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (groupProviders.equals(
+                if ((GROUP_PROVIDERS_ALL.equalsIgnoreCase(groupProviders)) || (Objects.equals(groupProviders,
                         curProvider.getGroupProviders()))) {
 
                     try {
@@ -517,14 +517,14 @@ public final class AuthManager {
     }
 
     private String getMessageUserIslockedOutForTooManyUnsuccessfulLoginAttempts(final String sesid, final String login, final String ip) {
-        if ((procPostProcessProvider == null) && (procPostProcessExtProvider == null)) {
+        if (isNull(procPostProcessProvider) && isNull(procPostProcessExtProvider)) {
             String s = String.format(USER_IS_LOCKED_OUT_FOR_TOO_MANY_UNSUCCESSFUL_LOGIN_ATTEMPTS, login);
             if (showTimeToUnlockUser) {
                 s = s + " " + String.format(TIME_TO_UNLOCK, lockouts.getTimeToUnlock(login));
             }
             return s;
         } else {
-            if (procPostProcessExtProvider != null) {
+            if (nonNull(procPostProcessExtProvider)) {
                 PostProcessResult ppr;
                 try {
                     ppr = procPostProcessExtProvider.callProcPostProcess(sesid, login, false, null, ip, true,
@@ -535,7 +535,7 @@ public final class AuthManager {
                 }
                 return ppr.getMessage();
             }
-            
+
             PostProcessResult ppr;
             try {
                 ppr = procPostProcessProvider.callProcPostProcess(sesid, login, false, null, ip, true,
@@ -610,7 +610,7 @@ public final class AuthManager {
             @Override
             public void run() {
                 AbstractLoginProvider curProvider = getNext();
-                while (curProvider != null) {
+                while (nonNull(curProvider)) {
                     try {
                         ProviderContextHolder ch = curProvider.newContextHolder();
                         try {
@@ -684,7 +684,7 @@ public final class AuthManager {
             }
             lockouts.loginFail(login);
 
-            if ((procPostProcessProvider == null) && (procPostProcessExtProvider == null) && lockouts.isLocked(login)) {
+            if (isNull(procPostProcessProvider) && isNull(procPostProcessExtProvider) && lockouts.isLocked(login)) {
                 String s = getMessageUserIslockedOutForTooManyUnsuccessfulLoginAttempts(sesid, login, ip);
                 LOGGER.error(s);
                 resumeMessage.append(". ").append(s);
@@ -718,12 +718,12 @@ public final class AuthManager {
      */
     public void logout(String sesid) {
         String authid = appsessions.get(sesid);
-        if (authid == null) {
+        if (isNull(authid)) {
             return;
         }
 
         AuthSession as = authsessions.get(authid);
-        if (!(sesid.contains("django")) && (as.config != null) && "IASBPLoginProvider".equalsIgnoreCase(
+        if (!(sesid.contains("django")) && nonNull(as.config) && "IASBPLoginProvider".equalsIgnoreCase(
                 as.config.getClass().getSimpleName())) {
             ((IASBPLoginProvider) as.config).disconnect(as.name, as.djangoauthid);
         }
@@ -751,7 +751,7 @@ public final class AuthManager {
         for (AuthSession as : authsessions.values()) {
             if (as.lastAuthenticated + MILLISECSINMINUTE * sessionTimeout < System.currentTimeMillis()) {
 
-                if ((as.config != null) && "IASBPLoginProvider".equalsIgnoreCase(
+                if (nonNull(as.config) && "IASBPLoginProvider".equalsIgnoreCase(
                         as.config.getClass().getSimpleName())) {
                     ((IASBPLoginProvider) as.config).disconnect(as.name, as.djangoauthid);
                 }
@@ -793,7 +793,7 @@ public final class AuthManager {
      */
     public void changeAppSessionId(String oldId, String newId) throws EAuthServerLogic {
         String authid = appsessions.get(oldId);
-        if (authid != null) {
+        if (nonNull(authid)) {
             String state = statesessions.get(oldId);
             statesessions.remove(oldId);
             statesessions.put(newId, state);
@@ -808,16 +808,16 @@ public final class AuthManager {
     public String isAuthenticated(String sesid, String ip) throws EAuthServerLogic {
 
         String authid = appsessions.get(sesid);
-        if (authid == null) {
+        if (isNull(authid)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__1"));
         }
 
         AuthSession as = authsessions.get(authid);
-        if (as == null) {
+        if (isNull(as)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__2"));
         }
 
-        if ((ip != null) && (as.getIp() != null)) {
+        if (nonNull(ip) && nonNull(as.getIp())) {
             if (!ip.equals(as.getIp())) {
                 throw EAuthServerLogic.create("Изменился ip пользователя");
             }
@@ -870,12 +870,12 @@ public final class AuthManager {
      */
     public void checkName(String sesid, String name, PrintWriter pw) throws EAuthServerLogic {
         String authid = appsessions.get(sesid);
-        if (authid == null) {
+        if (isNull(authid)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid));
         }
 
         AuthSession as = authsessions.get(authid);
-        if (as == null) {
+        if (isNull(as)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid));
         }
 
@@ -920,10 +920,10 @@ public final class AuthManager {
         String name;
 
         String authid = appsessions.get(sesid);
-        if (authid == null) throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid));
+        if (isNull(authid)) throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid));
 
         AuthSession as = authsessions.get(authid);
-        if (as == null) {
+        if (isNull(as)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid));
         }
 
@@ -966,12 +966,12 @@ public final class AuthManager {
         String name;
 
         String authid = appsessions.get(sesid);
-        if (authid == null) {
+        if (isNull(authid)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid));
         }
 
         AuthSession as = authsessions.get(authid);
-        if (as == null) {
+        if (isNull(as)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid));
         }
 
@@ -1012,9 +1012,8 @@ public final class AuthManager {
      * @return authsesid
      */
     public String authenticationGif(String sesid, String authsesid) {
-
-        if (authsesid != null) {
-            if (authsessions.get(authsesid) != null) {
+        if (nonNull(authsesid)) {
+            if (nonNull(authsessions.get(authsesid))) {
                 appsessions.putIfAbsent(sesid, authsesid);
                 return "AUTH_OK";
             }
@@ -1034,7 +1033,7 @@ public final class AuthManager {
 
             String groupProviders = alp.getGroupProviders();
 
-            if ((groupProviders == null) || (groupProviders.isEmpty())) {
+            if (isNull(groupProviders) || (groupProviders.isEmpty())) {
                 groupProviders = GROUP_PROVIDERS_NOT_DEFINE;
             }
 
@@ -1055,7 +1054,7 @@ public final class AuthManager {
 
 
     public void userCreate(String token, InputStream user) throws EAuthServerLogic {
-        if ((getuserlistToken == null) || (!getuserlistToken.equals(token))) {
+        if (isNull(getuserlistToken) || (!getuserlistToken.equals(token))) {
             throw EAuthServerLogic.create("Permission denied.");
         }
 
@@ -1071,7 +1070,7 @@ public final class AuthManager {
     }
 
     public void userUpdate(String token, String sid, InputStream user) throws EAuthServerLogic {
-        if ((getuserlistToken == null) || (!getuserlistToken.equals(token))) {
+        if (isNull(getuserlistToken) || (!getuserlistToken.equals(token))) {
             throw EAuthServerLogic.create("Permission denied.");
         }
 
@@ -1087,7 +1086,7 @@ public final class AuthManager {
     }
 
     public void userDelete(String token, String sid) throws EAuthServerLogic {
-        if ((getuserlistToken == null) || (!getuserlistToken.equals(token))) {
+        if (isNull(getuserlistToken) || (!getuserlistToken.equals(token))) {
             throw EAuthServerLogic.create("Permission denied.");
         }
 
@@ -1103,7 +1102,7 @@ public final class AuthManager {
     }
 
     public void updateUserInfoByUserUpdate(String oldLogin, String newLogin, String newPwd) {
-        if (oldLogin == null) {
+        if (isNull(oldLogin)) {
             return;
         }
 
@@ -1118,7 +1117,7 @@ public final class AuthManager {
     }
 
     public void logoutByUserDelete(String login) {
-        if (login == null) {
+        if (isNull(login)) {
             return;
         }
 
@@ -1179,7 +1178,7 @@ public final class AuthManager {
         authsessions.put(authid, new AuthSession(login, null, iasbp, authid, sw.toString().trim(), null, djangoauthid));
         appsessions.put(djangosesid, authid);
 
-        if ((iasbp != null) && (iasbp.getLogger() != null)) {
+        if (nonNull(iasbp) && nonNull(iasbp.getLogger())) {
             iasbp.getLogger().info("Логин пользователя из ИАС БП '" + login + "' посредством setDjangoAuthId успешен!");
         }
 
@@ -1202,21 +1201,21 @@ public final class AuthManager {
 
         AuthSession as;
 
-        if (authsesid == null) {
+        if (isNull(authsesid)) {
             String authid = appsessions.get(djangosesid);
-            if (authid == null) {
+            if (isNull(authid)) {
                 throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH,
                         djangosesid) + " Подробности: authsesid == null и не найден djangosesid.");
             }
 
             as = authsessions.get(authid);
-            if (as == null) {
+            if (isNull(as)) {
                 throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH,
                         djangosesid) + " Подробности: authsesid == null и не найден authid.");
             }
         } else {
             as = authsessions.get(authsesid);
-            if (as == null) {
+            if (isNull(as)) {
                 throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH,
                         djangosesid) + " Подробности: authsesid != null, но не найден AuthSession.");
             }
@@ -1240,7 +1239,7 @@ public final class AuthManager {
      */
     public void loginESIAUser(String sesid, String login, String userInfo) throws EAuthServerLogic {
 
-        if (esiaLoginProvider == null) {
+        if (isNull(esiaLoginProvider)) {
             esiaLoginProvider = new ESIALoginProvider();
             esiaLoginProvider.setType("esia");
             esiaLoginProvider.setConnectionUrl("esia");
@@ -1259,7 +1258,7 @@ public final class AuthManager {
 
     public void setSettings(String token, String lockoutTime, String loginAttemptsAllowed) throws EAuthServerLogic {
 
-        if ((settingsToken == null) || (!settingsToken.equals(token))) {
+        if (isNull(settingsToken) || (!settingsToken.equals(token))) {
             throw EAuthServerLogic.create("Permission denied.");
         }
 
@@ -1269,12 +1268,12 @@ public final class AuthManager {
             try (FileInputStream fin = new FileInputStream(configPath)) {
                 sFile = TextUtils.streamToString(fin);
             }
-            if (sFile == null) {
+            if (isNull(sFile)) {
                 throw EAuthServerLogic.create("Error reading config.xml.");
             }
 
 
-            if (lockoutTime != null) {
+            if (nonNull(lockoutTime)) {
                 int pos1 = sFile.indexOf("<lockouttime>");
                 if (pos1 == -1) {
                     throw EAuthServerLogic.create("config.xml does not contain &lt;lockouttime&gt; tag.");
@@ -1289,7 +1288,7 @@ public final class AuthManager {
                 LockoutManager.setLockoutTime(Integer.parseInt(lockoutTime));
             }
 
-            if (loginAttemptsAllowed != null) {
+            if (nonNull(loginAttemptsAllowed)) {
                 int pos1 = sFile.indexOf("<loginattemptsallowed>");
                 if (pos1 == -1) {
                     throw EAuthServerLogic.create("config.xml does not contain &lt;loginattemptsallowed&gt; tag.");
@@ -1317,12 +1316,12 @@ public final class AuthManager {
 
     public void setState(String sesid, String state) {
         String authid = appsessions.get(sesid);
-        if (authid == null) {
+        if (isNull(authid)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__1"));
         }
 
         AuthSession as = authsessions.get(authid);
-        if (as == null) {
+        if (isNull(as)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__2"));
         }
 
@@ -1331,12 +1330,12 @@ public final class AuthManager {
 
     public String getState(String sesid) {
         String authid = appsessions.get(sesid);
-        if (authid == null) {
+        if (isNull(authid)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__1"));
         }
 
         AuthSession as = authsessions.get(authid);
-        if (as == null) {
+        if (isNull(as)) {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__2"));
         }
 
@@ -1597,7 +1596,7 @@ public final class AuthManager {
                 @Override
                 void characters(String value) {
                     if (loginProviders.size() > 0) {
-                        if (loginProviders.getLast().getTrustedUsers() == null) {
+                        if (isNull(loginProviders.getLast().getTrustedUsers())) {
                             loginProviders.getLast().setTrustedUsers(new ArrayList<>());
                         }
                         loginProviders.getLast().getTrustedUsers().add(value);
@@ -1712,15 +1711,15 @@ public final class AuthManager {
                 @Override
                 void startElement(Attributes attributes) {
                     String value = attributes.getValue(ATTR_INITIAL_CAPACITY);
-                    if (value != null) {
+                    if (nonNull(value)) {
                         authsessionsInitialCapacity = Integer.parseInt(value);
                     }
                     value = attributes.getValue(ATTR_LOAD_FACTOR);
-                    if (value != null) {
+                    if (nonNull(value)) {
                         authsessionsLoadFactor = Integer.parseInt(value) / (float) 100;
                     }
                     value = attributes.getValue(ATTR_CONCURRENCY_LEVEL);
-                    if (value != null) {
+                    if (nonNull(value)) {
                         authsessionsConcurrencyLevel = Integer.parseInt(value);
                     }
                 }
@@ -1729,15 +1728,15 @@ public final class AuthManager {
                 @Override
                 void startElement(Attributes attributes) {
                     String value = attributes.getValue(ATTR_INITIAL_CAPACITY);
-                    if (value != null) {
+                    if (nonNull(value)) {
                         appsessionsInitialCapacity = Integer.parseInt(value);
                     }
                     value = attributes.getValue(ATTR_LOAD_FACTOR);
-                    if (value != null) {
+                    if (nonNull(value)) {
                         appsessionsLoadFactor = Integer.parseInt(value) / (float) 100;
                     }
                     value = attributes.getValue(ATTR_CONCURRENCY_LEVEL);
-                    if (value != null) {
+                    if (nonNull(value)) {
                         appsessionsConcurrencyLevel = Integer.parseInt(value);
                     }
                 }
@@ -1746,7 +1745,7 @@ public final class AuthManager {
             actions.put("threadcount", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (value != null) {
+                    if (nonNull(value)) {
                         threadCount = Integer.parseInt(value);
                     }
                 }
@@ -1755,7 +1754,7 @@ public final class AuthManager {
             actions.put("sessiontimeout", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (value != null) {
+                    if (nonNull(value)) {
                         sessionTimeout = Integer.parseInt(value);
                     }
                 }
@@ -1764,7 +1763,7 @@ public final class AuthManager {
             actions.put("lockouttime", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (value != null) {
+                    if (nonNull(value)) {
                         LockoutManager.setLockoutTime(Integer.parseInt(value));
                     }
                 }
@@ -1773,7 +1772,7 @@ public final class AuthManager {
             actions.put("loginattemptsallowed", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (value != null) {
+                    if (nonNull(value)) {
                         LockoutManager.setLoginAttemptsAllowed(Integer.parseInt(value));
                     }
                 }
@@ -1796,7 +1795,7 @@ public final class AuthManager {
             actions.put("showtimetounlockuser", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (value != null) {
+                    if (nonNull(value)) {
                         showTimeToUnlockUser = Boolean.parseBoolean(value);
                     }
                 }
@@ -1805,7 +1804,7 @@ public final class AuthManager {
             actions.put("checkpasswordhashonly", new ParserAction() {
                 @Override
                 void characters(String value) {
-                    if (value != null) {
+                    if (nonNull(value)) {
                         checkPasswordHashOnly = Boolean.parseBoolean(value);
                     }
                 }
@@ -1817,7 +1816,7 @@ public final class AuthManager {
         public void startElement(String uri, String localName, String qName, Attributes attributes) {
             if (CONFIG_NAMESPACE.equals(uri)) {
                 currentAction = actions.get(localName);
-                if (currentAction != null) currentAction.startElement(attributes);
+                if (nonNull(currentAction)) currentAction.startElement(attributes);
             } else {
                 currentAction = null;
             }
@@ -1825,7 +1824,7 @@ public final class AuthManager {
 
         @Override
         public void characters(char[] ch, int start, int length) {
-            if (currentAction != null) {
+            if (nonNull(currentAction)) {
                 currentAction.characters((new String(ch, start, length)).trim());
                 currentAction = null;
             }
