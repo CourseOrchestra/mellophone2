@@ -1,8 +1,5 @@
 package ru.curs.mellophone.logic;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -22,7 +19,8 @@ public class BaseTestLoginProvider {
     /**
      * Перед началом выполнения всех тестов.
      */
-    @BeforeAll
+    //@BeforeAll
+/*
     public static void beforeClass() {
         try {
             AuthManager.getTheManager().testModeInitialize();
@@ -30,6 +28,7 @@ public class BaseTestLoginProvider {
             e.printStackTrace();
         }
     }
+*/
 
     /**
      * Устанавливает login.
@@ -61,10 +60,14 @@ public class BaseTestLoginProvider {
     /**
      * Перед началом выполнения каждого теста.
      */
-    @BeforeEach
+    //@BeforeEach
+/*
+
     public void beforeTest() {
         AuthManager.getTheManager().logout(SES_ID);
     }
+
+*/
 
     /**
      * Тест ф-ции login.
