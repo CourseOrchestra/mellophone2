@@ -167,7 +167,7 @@ public final class AuthManager {
         ConfigParser p = new ConfigParser();
         try {
             File configTestFile = new File("./src/test/resources/config_test.xml");
-            InputStream is = new FileInputStream(configTestFile);
+            InputStream is = new FileInputStream(configTestFile.getAbsolutePath());
 
             SaxonTransformerFactory.newInstance().newTransformer().transform(new StreamSource(is), new SAXResult(p));
         } catch (Exception e) {
