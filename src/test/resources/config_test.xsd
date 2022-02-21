@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+    targetNamespace="http://www.curs.ru/authserver" xmlns:as="http://www.curs.ru/authserver">
+    <xs:element name="config">
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element name="ldapserver">
+                    <xs:annotation>
+                        <xs:documentation>Коннектор к LDAP-серверу.</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element minOccurs="0" name="logging" type="xs:boolean"/>   
+                            <xs:element name="servertype">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="MSActiveDirectory"/>
+                                        <xs:enumeration value="ApacheDS"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element name="url">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:pattern value="ldaps?://[a-zA-Z0-9.\-_]+(:[0-9]+)?"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element minOccurs="0" name="usessl" type="xs:boolean"/>
+                            <xs:element name="sat">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="None"/>
+                                        <xs:enumeration value="Simple"/>
+                                        <xs:enumeration value="DIGEST_MD5"/>
+                                        <xs:enumeration value="GSSAPI"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element maxOccurs="unbounded" name="searchbase">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:pattern value="([a-zA-Z0-9]+=[^,]+,)*[a-zA-Z0-9]+=[^,]+"
+                                        />
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element minOccurs="0" name="searchreturningattributes">
+                            </xs:element>
+                            <xs:element minOccurs="0" name="searchfilterforuser">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element minOccurs="0" name="searchfilterforimport">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="xmlfile">
+                    <xs:annotation>
+                        <xs:documentation>Коннектор к XML-файлу.</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element minOccurs="0" name="logging" type="xs:boolean"/>   
+                            <xs:element name="url">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                        </xs:sequence>                            
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="httpserver">
+                    <xs:annotation>
+                        <xs:documentation>Коннектор к HTTP-серверу.</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element minOccurs="0" name="logging" type="xs:boolean"/>   
+                            <xs:element name="url">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element name="validateuser">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element name="userinfobyname">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element name="userinfobyid">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                        </xs:sequence>                            
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="sqlserver">
+                    <xs:annotation>
+                        <xs:documentation>Коннектор к SQL-серверу.</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element minOccurs="0" name="logging" type="xs:boolean"/>
+                            <xs:element minOccurs="1" name="url">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element minOccurs="1" name="connectionusername">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element minOccurs="1" name="connectionpassword">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element minOccurs="1" name="table">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element minOccurs="1" name="fieldlogin">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element minOccurs="1" name="fieldpassword">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element minOccurs="1" name="searchreturningattributes">
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

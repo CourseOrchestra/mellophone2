@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.curs.ru/authserver config_test.xsd" xmlns="http://www.curs.ru/authserver">
+
+    <xmlfile>
+        <logging>false</logging>
+        <url>src/test/resources/users.xml</url>
+    </xmlfile>
+</config>
+
+
+
+
+
+

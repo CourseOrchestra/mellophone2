@@ -103,6 +103,10 @@ public final class AuthManager {
         return theMANAGER;
     }
 
+    public LinkedList<AbstractLoginProvider> getLoginProviders() {
+        return loginProviders;
+    }
+
     public boolean isCheckPasswordHashOnly() {
         return checkPasswordHashOnly;
     }
@@ -160,16 +164,9 @@ public final class AuthManager {
      * @throws EAuthServerLogic исключение
      */
     public void testModeInitialize() throws EAuthServerLogic {
-        //ClassLoader classLoader = Thread.currentThread()
-        //	.getContextClassLoader();
-        //InputStream is = classLoader
-        //	.getResourceAsStream("src/test/java/ru/curs/mellophone/test/config_test.xml");
-
-
-        // Читаем все настройки из XML...
         ConfigParser p = new ConfigParser();
         try {
-            File configTestFile = new File("src/test/java/ru/curs/mellophone/test/config_test.xml");
+            File configTestFile = new File("src/test/resources/config_test.xml");
             InputStream is = new FileInputStream(configTestFile);
 
             SaxonTransformerFactory.newInstance().newTransformer().transform(new StreamSource(is), new SAXResult(p));
