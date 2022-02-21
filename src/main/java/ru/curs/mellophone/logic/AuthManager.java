@@ -82,7 +82,6 @@ public final class AuthManager {
      * Количество потоков, параллельно опрашивающих логин-провайдеры.
      */
     private int threadCount = 4;
-
     private int sessionTimeout = 0;
     private Timer timerTimeout = null;
     private String settingsToken = null;
@@ -91,7 +90,6 @@ public final class AuthManager {
     private boolean showTimeToUnlockUser = false;
     private SQLLoginProvider procPostProcessProvider = null;
     private SQLExtLoginProvider procPostProcessExtProvider = null;
-    private String initializationError = null;
 
     /**
      * Возвращает единственный экземпляр (синглетон) менеджера системы
@@ -127,41 +125,30 @@ public final class AuthManager {
         try {
             File configFile = new File(configPath);
             if (!configFile.exists()) {
-                initializationError = "файл конфигурации " + configFile.getCanonicalPath() + " не существует.";
-                return;
+                throw EAuthServerLogic.create("Файл конфигурации " + configFile.getCanonicalPath() + " не существует.");
             }
 
             LOGGER = LoggerFactory.getLogger(AuthManager.class);
 
-
-            // Читаем все настройки из XML...
             ConfigParser p = new ConfigParser();
             try {
                 SaxonTransformerFactory.newInstance().newTransformer()
                         .transform(new StreamSource(configFile), new SAXResult(p));
             } catch (Exception e) {
-                initializationError = "произошла ошибка при чтении файла конфигурации " + configFile.getCanonicalPath() + " " + e.getMessage();
-                return;
+                throw EAuthServerLogic.create(
+                        "Произошла ошибка при чтении файла конфигурации " + configFile.getCanonicalPath() + " " + e.getMessage());
             }
 
             if (loginProviders.stream().filter(lp -> "sqlserverext".equals(lp.getType())).toList()
                     .size() > 1) {
-                initializationError = "файл конфигурации " + configFile.getCanonicalPath() + " содержит более одного sqlserverext провайдера аутентификации";
-                return;
+                throw EAuthServerLogic.create(
+                        "Файл конфигурации " + configFile.getCanonicalPath() + " содержит более одного sqlserverext провайдера аутентификации");
             }
 
             commonInitialize();
 
         } catch (Exception e) {
-            initializationError = e.getMessage();
-            if (initializationError == null) {
-                initializationError = "файл конфигурации " + configPath + " не существует.";
-            }
-        } finally {
-            if (initializationError != null) {
-                initializationError = "Mellophone не инициализирован по причине: " + initializationError;
-                throw EAuthServerLogic.create(initializationError);
-            }
+            throw EAuthServerLogic.create(e);
         }
 
     }
@@ -548,18 +535,16 @@ public final class AuthManager {
                 }
                 return ppr.getMessage();
             }
-            if (procPostProcessProvider != null) {
-                PostProcessResult ppr;
-                try {
-                    ppr = procPostProcessProvider.callProcPostProcess(sesid, login, false, null, ip, true,
-                            LockoutManager.getLockoutManager().getAttemptsCount(login),
-                            LockoutManager.getLockoutManager().getTimeToUnlock(login));
-                } catch (Exception e) {
-                    return e.getMessage();
-                }
-                return ppr.getMessage();
+            
+            PostProcessResult ppr;
+            try {
+                ppr = procPostProcessProvider.callProcPostProcess(sesid, login, false, null, ip, true,
+                        LockoutManager.getLockoutManager().getAttemptsCount(login),
+                        LockoutManager.getLockoutManager().getTimeToUnlock(login));
+            } catch (Exception e) {
+                return e.getMessage();
             }
-            return null;
+            return ppr.getMessage();
         }
     }
 
