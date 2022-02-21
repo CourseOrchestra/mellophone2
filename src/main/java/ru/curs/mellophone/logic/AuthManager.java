@@ -12,6 +12,8 @@ import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -166,8 +168,17 @@ public final class AuthManager {
     public void testModeInitialize() throws EAuthServerLogic {
         ConfigParser p = new ConfigParser();
         try {
+
+            //Path resourceDirectory = Paths.get("src","test","resources");
+
+            Path resourceDirectory = Paths.get("src", "test", "resources", "config_test.xml");
+
             File configTestFile = new File("./src/test/resources/config_test.xml");
-            InputStream is = new FileInputStream(configTestFile.getAbsolutePath());
+
+            InputStream is = new FileInputStream(resourceDirectory.toFile().getAbsolutePath());
+
+
+//            InputStream is = new FileInputStream(configTestFile.getAbsolutePath());
 
             SaxonTransformerFactory.newInstance().newTransformer().transform(new StreamSource(is), new SAXResult(p));
         } catch (Exception e) {
