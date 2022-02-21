@@ -69,6 +69,7 @@ public final class AuthManager {
      * Привязка сессий приложений к сессиям аутентификации.
      */
     private ConcurrentHashMap<String, String> appsessions;
+    private ConcurrentHashMap<String, String> statesessions;
     /**
      * Параметры authsessions и appsessions.
      */
@@ -211,6 +212,7 @@ public final class AuthManager {
                 authsessionsConcurrencyLevel);
         appsessions = new ConcurrentHashMap<String, String>(appsessionsInitialCapacity, appsessionsLoadFactor,
                 appsessionsConcurrencyLevel);
+        statesessions = new ConcurrentHashMap<String, String>();
 
         if (sessionTimeout > 0) {
             timerTimeout = new Timer();
@@ -781,6 +783,7 @@ public final class AuthManager {
         }
         for (String app : apps) {
             appsessions.remove(app);
+            statesessions.remove(app);
         }
 
         authsessions.remove(authid);
@@ -822,6 +825,7 @@ public final class AuthManager {
 
             for (String app : apps) {
                 appsessions.remove(app);
+                statesessions.remove(app);
             }
         }
 
@@ -837,6 +841,10 @@ public final class AuthManager {
     public void changeAppSessionId(String oldId, String newId) throws EAuthServerLogic {
         String authid = appsessions.get(oldId);
         if (authid != null) {
+            String state = statesessions.get(oldId);
+            statesessions.remove(oldId);
+            statesessions.put(newId, state);
+
             appsessions.remove(oldId);
             appsessions.put(newId, authid);
         } else {
@@ -1217,8 +1225,11 @@ public final class AuthManager {
         List<String> authDel = authsessions.entrySet().stream().filter(e -> login.equals(e.getValue().getName()))
                 .map(e -> e.getKey()).collect(Collectors.toList());
 
-        appsessions.values().removeAll(authDel);
+        List<String> appDel = appsessions.entrySet().stream().filter(e -> authDel.contains(e.getValue()))
+                .map(e -> e.getKey()).collect(Collectors.toList());
 
+        appsessions.keySet().removeAll(appDel);
+        statesessions.keySet().removeAll(appDel);
         authsessions.keySet().removeAll(authDel);
     }
 
@@ -1418,7 +1429,7 @@ public final class AuthManager {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__2"));
         }
 
-        as.setState(state);
+        statesessions.put(sesid, state);
     }
 
     public String getState(String sesid) {
@@ -1432,7 +1443,7 @@ public final class AuthManager {
             throw EAuthServerLogic.create(String.format(SESID_NOT_AUTH, sesid + "__2"));
         }
 
-        return as.getState();
+        return statesessions.get(sesid);
     }
 
 
@@ -1450,7 +1461,6 @@ public final class AuthManager {
         private String name;
         private String pwd;
         private long lastAuthenticated = System.currentTimeMillis();
-        private String state = null;
 
         public AuthSession(String name, String pwd, AbstractLoginProvider config, final String authid, final String userInfo, final String ip, final String djangoauthid) {
             this.name = name;
@@ -1488,14 +1498,6 @@ public final class AuthManager {
 
         public String getIp() {
             return ip;
-        }
-
-        public String getState() {
-            return state;
-        }
-
-        public void setState(String state) {
-            this.state = state;
         }
     }
 
