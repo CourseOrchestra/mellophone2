@@ -74,8 +74,8 @@ public class MellophoneController {
     }
 
     @RequestMapping("/getuserlist")
-    public String getuserlist(String pid, String gp, @NotNull String token, String ip) {
-        return mellophoneService.getuserlist(pid, gp, token, ip);
+    public String getuserlist(String pid, String gp, @NotNull String token) {
+        return mellophoneService.getuserlist(pid, gp, token);
     }
 
     @PostMapping("/user/create")

@@ -113,7 +113,7 @@ public record MellophoneService(MellophoneProperties properties) {
         return os.toString();
     }
 
-    public String getuserlist(String pid, String gp, String token, String ip) {
+    public String getuserlist(String pid, String gp, String token) {
         if (isNull(gp)) {
             gp = AuthManager.GROUP_PROVIDERS_ALL;
         }
@@ -121,13 +121,9 @@ public record MellophoneService(MellophoneProperties properties) {
             gp = "";
         }
 
-        if (nonNull(ip) && ip.isEmpty()) {
-            ip = null;
-        }
-
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PrintWriter pw = new PrintWriter(os);
-        AuthManager.getTheManager().getUserList(pid, gp, token, ip, pw);
+        AuthManager.getTheManager().getUserList(pid, gp, token, pw);
         pw.flush();
         return os.toString();
     }
@@ -161,7 +157,7 @@ public record MellophoneService(MellophoneProperties properties) {
     }
 
     public void loginesiauser(String sesid, String login, String userinfo) {
-        AuthManager.getTheManager().loginESIAUser(sesid, login, userinfo, null);
+        AuthManager.getTheManager().loginESIAUser(sesid, login, userinfo);
     }
 
     public String setdjangoauthid(String djangosesid, String djangoauthid, String login, String name, String sid) {
