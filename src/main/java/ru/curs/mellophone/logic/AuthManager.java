@@ -172,8 +172,15 @@ public final class AuthManager {
             //Path resourceDirectory = Paths.get("src","test","resources");
 
             Path resourceDirectory = Paths.get("src", "test", "resources", "config_test.xml");
+//            Path resourceDirectory = Paths.get("config_test.xml");
 
-            File configTestFile = new File("./src/test/resources/config_test.xml");
+            //            File configTestFile = new File("./src/test/resources/config_test.xml");
+
+
+/*
+            System.out.println("------------------");
+            System.out.println(resourceDirectory.toFile().getAbsolutePath());
+*/
 
             InputStream is = new FileInputStream(resourceDirectory.toFile().getAbsolutePath());
 
