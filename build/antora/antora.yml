@@ -1,0 +1,6 @@
+name: mellophone
+title: Руководство администратора
+version: 1.0
+start_page: ROOT:manual.adoc
+nav:
+- modules/ROOT/nav.adoc

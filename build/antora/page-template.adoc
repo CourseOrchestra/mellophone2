@@ -1,0 +1,8 @@
+:fn: somefile.adoc
+include::{partialsdir}/pages/{fn}[lines=1..1]
+//include::meta.adoc[]
+// Атрибут устанавливает URL для кнопки Редактировать.
+// При отсутствии соответствующая надпись не показывается
+//:page-editsource: {repository-root}/partials/{fn}
+:!toc:
+include::{partialsdir}/pages/{fn}[lines=2..-1]

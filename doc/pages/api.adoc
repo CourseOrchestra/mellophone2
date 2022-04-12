@@ -1,0 +1,10 @@
+= Mellophone API
+ifdef::edit[]
+:partials: ../partials
+endif::[]
+== OpenAPI specification
+
+[source, yaml]
+----
+include::../openapi/services.yaml[]
+----
