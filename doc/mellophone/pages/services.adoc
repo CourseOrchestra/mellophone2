@@ -4,6 +4,7 @@
 
 .Сервлеты сервера аутентификации
 [plantuml,structure,png]
+
 ....
 skinparam dpi 300
 skinparam shadowing false
@@ -16,25 +17,29 @@ rectangle app [
     **Приложение 1**
     domain-1.ru
 ]
+note top of app
+/login?sesid=...&login=...&pwd=...&gp=...
+/isauthenticated?sesid=...
+/logout?sesid=...
+end note
+
 rectangle AuthServer [
     **AuthServer**
     authentication-domain.ru
 ]
+
 rectangle browser [
     **Пользовательский браузер**
 ]
+
 rectangle app2 [
     **Приложение 2**
     domain-2.ru
 ]
 
 AuthServer <== app
-note top of app
-/login?sesid=...&login=...&pwd=...&gp=...
-/isauthenticated?sesid=...
-/logout?sesid=...
-end note
 AuthServer <== app2
+
 note top of app2
 /login?sesid=...&login=...&pwd=...&gp=...
 /isauthenticated?sesid=...
@@ -43,7 +48,6 @@ end note
 app <== browser
 app2 <== browser
 AuthServer <=== browser
-
 ....
 
 === Сервлет для установки стороннего куки
