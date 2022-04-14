@@ -1,0 +1,118 @@
+== Настройка Mellophone
+
++Файл настройки *config.xml* находится в поддиректории *config* директории установки приложения. Файл содержит общие настройки приложения и перечисление настроек провайдеров аутентификации в субтэгах корневого тэга config. Пример файла config.xml:
+[source,xml]
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.curs.ru/authserver config.xsd" xmlns="http://www.curs.ru/authserver">
+        <!-- Общие настройки -->
+	<common>
+         	<threadcount>4</threadcount>
+		<authsessions initialCapacity="16" loadFactor="75" concurrencyLevel="16"/>
+		<appsessions initialCapacity="16" loadFactor="75" concurrencyLevel="16"/>
+  	        <lockouttime>10</lockouttime>
+                <loginattemptsallowed>5</loginattemptsallowed>
+	        <setsettingstoken>43c42c2ee9210b0a77166a37f82bb4b6</setsettingstoken>
+   	        <getuserlisttoken>9ed41e1e40ff47208d8e0943b918a554</getuserlisttoken>
+                <showtimetounlockuser>true</showtimetounlockuser>
+                <checkpasswordhashonly>true</checkpasswordhashonly>
+	</common>
+        <!-- Провайдер LDAP ApacheDS-->
+	<ldapserver>
+    	        <id>test</id>
+   	        <group_providers>Группа1</group_providers>
+		<logging>true</logging>
+		<servertype>ApacheDS</servertype>
+		<url>ldap://localhost:10389</url>
+		<usessl>false</usessl>
+		<sat>Simple</sat>
+		<searchbase>ou=users,ou=system</searchbase>
+		<searchreturningattributes
+		  SID="entryUUID"
+		  login="uid"
+		  name="cn"
+		  email="mail"
+		  phone="homePhone"
+		  organization = "o"
+		  fax = "facsimileTelephoneNumber"
+		/>
+		<searchfilterforuser>
+		  (&amp;(objectClass=inetOrgPerson)(uid=%s))
+  	        </searchfilterforuser>
+		<searchfilterforimport>
+		  (&amp;(objectClass=inetOrgPerson))
+		</searchfilterforimport>
+	</ldapserver>
+        <!-- Провайдер LDAP ActiveDirectory-->
+	<ldapserver>
+ 	        <id>test2</id>
+   	        <group_providers>Группа1</group_providers>
+	        <domain_name>Office</domain_name>
+		<logging>true</logging>
+		<servertype>MSActiveDirectory</servertype>
+		<url>ldap://srv:389</url>
+		<usessl>false</usessl>
+		<sat>DIGEST_MD5</sat>
+		<searchbase>CN=Builtin,DC=curs,DC=ru</searchbase>
+		<searchbase>CN=Users,DC=curs,DC=ru</searchbase>
+		<searchbase>OU=Office,DC=curs,DC=ru</searchbase>
+		<searchreturningattributes
+		  SID="objectSid"
+		  login="sAMAccountName"
+		  name="name"
+		  email="targetAddress"
+		  phone="telephoneNumber"
+		  organization = ""
+		  fax = ""
+		/>
+		<searchfilterforuser>
+		  (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(sAMAccountName=%s))
+  	    </searchfilterforuser>
+		<searchfilterforimport>
+		  (&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+		</searchfilterforimport>
+	</ldapserver>
+        <!-- Провайдер XML-файл-->
+	<xmlfile>
+ 	        <id>test3</id>
+   	        <group_providers></group_providers>
+		<logging>true</logging>
+		<url>D:/workspace/mellophone/WebContent/config/users.xml</url>
+	</xmlfile>
+	<!-- Провайдер база данных-->
+        <sqlserver>
+	        <id>test4</id>
+ 		<logging>true</logging>
+		<url>jdbc:sqlserver://BORIS2\\SQL8R2_RUS_TEST2:1145;databaseName=showcase</url>
+		<connectionusername>sa</connectionusername>
+		<connectionpassword>F708420Dx</connectionpassword>
+		<table>Пользователи</table>
+		<fieldlogin>Логин</fieldlogin>
+		<fieldpassword>Пароль</fieldpassword>
+		<fieldblocked>Заблокированный</fieldblocked>
+		<hashalgorithm>SHA-256</hashalgorithm>
+		<localsecuritysalt>0763bdd890421f02bba7bfe8b456c69f</localsecuritysalt>
+		<procpostprocess>postProcess</procpostprocess>
+		<searchreturningattributes
+		  SID="Поле objectSid"
+		  login="Логин"
+		  name="Поле name"
+		  email="Поле email"
+		  phone="Поле phone"
+		  organization = ""
+		  fax = "Поле fax"
+		/>
+	</sqlserver>
+        <!-- Провайдер HTTP-->
+	<httpserver>
+		<logging>true</logging>
+		<url>http://info.ondp2012.ru/security/</url>
+		<validateuser>ValidateUser</validateuser>
+		<userinfobyname>User/%s</userinfobyname>
+		<userinfobyid>User/Id/%s</userinfobyid>
+	</httpserver>
+</config>
+
+В этом файле могут быть заданы настройки многих провайдеров аутентификации (успешно работают установки с десятками провайдеров аутентификации типа LDAP). Для увеличения скорости работы опрос провайдеров происходит в четыре параллельных потока выполнения. Пользователь считается аутентифицированным, если хотя бы один из провайдеров успешно аутентифицировал пользователя.
+
+Подробное описание каждого из типов провайдеров аутентификации приводится далее.

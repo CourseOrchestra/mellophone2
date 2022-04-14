@@ -40,7 +40,7 @@ paths:
     post:
       summary: Аутентифицировать сессию
       requestBody:
-        description: ddd
+        description: Идентификатор сессии
         content:
           application/json:
             schema:
