@@ -1,0 +1,71 @@
+[[LDAPlink]]
+== LDAP-провайдер аутентификации
+=== Принцип работы
+Аутентификация по LDAP — наиболее предпочтительный для крупной организации вариант аутентификации, с её помощью можно добиться интеграции с ActiveDirectory и возможности входа пользователя под тем логином и паролем, под которым он входит в домен. Другой вариант — использование LDAP-сервера ApacheDS для хранения информации о пользователях.
+
+Чтобы организовать аутентификацию по LDAP с ActiveDirectory, необходимо указать целый ряд параметров — адрес домен-контроллера, тип соединения, "ветки" директории, в которых будет осуществляться поиск пользователей.
+
+Для предварительной проверки того факта, что эти опции верны, рекомендуется использовать инструмент {apache}.
+
+Пример задаваемого текстом списка пользователей для сервера ApacheDS:
+[source,yaml]
+version: 1
+dn: ou=users,ou=system
+objectClass: organizationalUnit
+objectClass: top
+ou: users
+dn:: dWlkPdCh0LjQtNC+0YDQvtCyQXBhY2hlLG91PXVzZXJzLG91PXN5c3RlbQ==
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn:: 0JDQu9C10LrRgdC10Lkg0JIuINCS0LDRgdC40LvRjNC10LI=
+sn:: 0JLQsNGB0LjQu9GM0LXQsg==
+facsimileTelephoneNumber: 2-987-65-43
+homePhone: 2-123-45-67
+mail: mail2
+o:: 0L7RgNCz0LDQvdC40LfQsNGG0LjRjzI=
+uid:: 0KHQuNC00L7RgNC+0LJBcGFjaGU=
+userPassword:: e1NIQX16Z2p4aFl6ZWM1THNlSDVKZmdjdzBiQ0VIcnc9
+dn:: dWlkPdCf0LXRgtGA0L7QskFwYWNoZSxvdT11c2VycyxvdT1zeXN0ZW0=
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn:: 0JHQvtGA0LjRgSDQki4g0KHQvNC40YDQvdC+0LI=
+sn:: 0KHQvNC40YDQvdC+0LI=
+facsimileTelephoneNumber: 1-987-65-43
+homePhone: 1-123-45-67
+mail: mail1
+o:: 0L7RgNCz0LDQvdC40LfQsNGG0LjRjzE=
+uid:: 0J/QtdGC0YDQvtCyQXBhY2hl
+userPassword:: e1NIQX15Q00vd1lwZjBQaHloTm42bHhCSmlSTVY3WVE9
+
+=== Параметры настройки в файле config.xml
+Провайдер определяется тэгом *ldapserver*.
+
+Параметры (субтэги):
+
+* *id* (строка) - идентификатор провайдера.
+* *logging* (true/false) - выводить в лог события работы провайдера.
+* *group_providers* (строка) - группа, к которой относится данный провайдер. Используется для ограничения множества провайдеров, в которые происходит попытка логина. Может быть пустой или отсутствовать. Конкретная группа передается в качестве параметра в сервлете логина, пользователь может иметь возможность явно выбирать группу провайдеров при подключении.
+* *servertype*(MSActiveDirectory/ApacheDS) - тип LDAP-сервера: Microsoft ActiveDirectory или ApacheDS.
+* *url* (строка) - адрес LDAP-сервера, начиная с "ldap://" и заканчивая, после двоеточия, портом.
+* *usessl* (true/false) - использовать ли SSL при подключении к LDAP-серверу (пока не реализовано, нужно выставлять false).
+* *sat* (None/Simple/DIGEST_MD5/GSSAPI) - тип аутентификации, одно из следующих значений:
+** *None* - проверка имени пользователя и пароля не производится (может быть полезна, если сервер допускает анонимные соединения).
+** *Simple* - пароль передается в незашифрованном виде.
+** *DIGEST_MD5* - пароль передается в зашифрованном виде, используя алгортим DIGEST_MD5. Замечания по поводу аутентификации при помощи DIGEST_MD5: 1.В случае AD Windows необходимо, чтобы имя пользователя было sAMAccountName 2.Критические системные объекты (например, 'Administrator') использовать нельзя 3. В случае AD Windows 2000 необходимо, чтобы на сервере было установлено "reversible password encryption enabled".
+** *GSSAPI* - аутентификация при помощи Kerberos.
+* *domain_name* (строка) - имя домена, связанное с данным LDAP-сервером. Опциональный параметр. В случае, если он указан, попытка логина в такой провайдер осуществляется два раза, один раз в формате "login", второй - в формате "domain_name\login".
+* *searchreturningattributes* (тэг с атрибутами) - содержит в себе указания, какие атрибуты LDAP-объекта следует интерпретировать в качестве SID, логина, электронной почты и т.п. пользователя системы. Атрибуты тэга searchreturningattributes следующие:
+** *SID* - SID пользователя
+** *login* - логин пользователя
+** *name* - имя пользователя
+** *email* - электронная почта пользователя
+** *phone* - телефон пользователя
+** *organization* - организация пользователя
+** *fax* - факс пользователя
+* *searchbase* (строка, может быть несколько) - база поиска пользователя в LDAP-дереве. Можно задать несколько баз, используя несколько тэгов searchbase.
+* *searchfilterforuser* - LDAP-запрос для поиска пользователя по имени, где подстановкой %s обозначено место для вставки имени пользователя.
+* *searchfilterforimport* - LDAP-запрос для поиска всех пользователей (для сервлета /getuserlist).
