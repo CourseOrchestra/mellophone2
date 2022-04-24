@@ -3,8 +3,12 @@
 === Сервлеты для прямых запросов с серверов веб-приложений
 
 .Сервлеты сервера аутентификации
+<<<<<<< HEAD
 [plantuml,structure,png]
 
+=======
+[plantuml,structure,png, width=800px]
+>>>>>>> origin/docSep
 ....
 skinparam dpi 300
 skinparam shadowing false
@@ -48,6 +52,10 @@ end note
 app <== browser
 app2 <== browser
 AuthServer <=== browser
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/docSep
 ....
 
 === Сервлет для установки стороннего куки
