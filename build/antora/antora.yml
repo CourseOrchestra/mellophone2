@@ -1,0 +1,6 @@
+name: mellophone
+title: Мелофон
+version: 2
+start_page: general.adoc
+nav:
+- modules/ROOT/nav.adoc
