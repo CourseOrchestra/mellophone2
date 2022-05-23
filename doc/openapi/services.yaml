@@ -1,0 +1,671 @@
+openapi: 3.0.1
+info:
+  title: Title
+  description: ''
+  termsOfService: https://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: https://swagger.io
+tags:
+  - name: mellophone
+    description: Меллофон
+paths:
+  /login:
+    get:
+      summary: Аутентифицировать сессию
+      parameters:
+        - name: sesid
+          in: query
+          description: Идентификатор сессии
+          required: true
+          schema:
+            type: string
+        - name: login
+          in: query
+          description: Логин
+          required: true
+          schema:
+            type: string
+        - name: pwd
+          in: query
+          description: Пароль
+          required: true
+          schema:
+            type: string
+        - name: gp
+          in: query
+          description: Группа провайдеров
+          required: false
+          schema:
+            type: string
+        - name: ip
+          in: query
+          description: ip компьютера пользователя  для передачи в функцию проверки пользователя по логину и ip (только для SQL-провайдера аутентификации)
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Успешно
+          content: {}
+        403:
+          description: Причина неуспешной аутентификации
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Аутентифицировать сессию
+      requestBody:
+        description: Идентификатор сессии
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredentialsDTO'
+      responses:
+        200:
+          description: Успешно
+          content: {}
+        403:
+          description: Причина неуспешной аутентификации
+          content:
+            text/plain:
+              schema:
+                type: string
+  /logout:
+    get:
+      summary: Разаутентифицировать сессию
+      parameters:
+        - name: sesid
+          in: query
+          description: Идентификатор сессии
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Успешно
+          content: {}
+    post:
+      summary: Разаутентифицировать сессию
+      requestBody:
+        description: Идентификатор сессии
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Session'
+      responses:
+        200:
+          description: Успешно
+          content: {}
+  /isauthenticated:
+    get:
+      summary: Вернуть информацию об аутентифицированном пользователе
+      parameters:
+        - name: sesid
+          in: query
+          description: Идентификатор сессии
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Информация об аутентифицированном пользователе, если сессия с идентификатором сессии приложения sesid аутентифицирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        403:
+          description: Причина сессия с идентификатором sesid не аутентифицирована
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Вернуть информацию об аутентифицированном пользователе
+      requestBody:
+        description: Идентификатор сессии
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Session'
+      responses:
+        200:
+          description: Информация об аутентифицированном пользователе, если сессия с идентификатором сессии приложения sesid аутентифицирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        403:
+          description: Причина сессия с идентификатором sesid не аутентифицирована
+          content:
+            text/plain:
+              schema:
+                type: string
+  /changeappsesid:
+    get:
+      summary: Сменить идентификатор сессии
+      parameters:
+        - name: oldsesid
+          in: query
+          description: Заменяемый идентификатор сессии
+          required: true
+          schema:
+            type: string
+        - name: newsesid
+          in: query
+          description: Новый идентификатор сессии
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Успешная смена идентификатора сессии
+          content: {}
+        403:
+          description: Причина сессия приложения с идентификатором oldsesid не была аутентифицирована
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Сменить идентификатор сессии
+      requestBody:
+        description: Идентификаторы сессий
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeSid'
+      responses:
+        200:
+          description: Успешная смена идентификатора сессии
+          content: {}
+        403:
+          description: Причина сессия приложения с идентификатором oldsesid не была аутентифицирована
+          content:
+            text/plain:
+              schema:
+                type: string
+  /checkname:
+    get:
+      summary: Вернуть информацию об аутентифицированном пользователе по имени
+      parameters:
+        - name: sesid
+          in: query
+          description: Идентификатор сессии
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: query
+          description: Имя пользователя
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Информация об аутентифицированном пользователе, если пользователь с таким именем существует в директории, иначе пустое тело ответа, если пользователь с таким именем не существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Name'
+        403:
+          description: Причина сессия с идентификатором sesid не аутентифицирована
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Вернуть информацию об аутентифицированном пользователе по имени
+      requestBody:
+        description: Идентификатор сессии и имя пользователя
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Name'
+      responses:
+        200:
+          description: Информация об аутентифицированном пользователе, если пользователь с таким именем существует в директории, иначе пустое тело ответа, если пользователь с таким именем не существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Name'
+        403:
+          description: Причина сессия с идентификатором sesid не аутентифицирована
+          content:
+            text/plain:
+              schema:
+                type: string
+  /importgroupsproviders:
+    get:
+      summary: Вернуть список групп провайдеров
+      responses:
+        200:
+          description: Группа провайдеров, если список получен успешно
+          content: {}
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Вернуть список групп провайдеров
+      requestBody:
+        content: {}
+      responses:
+        200:
+          description: Группа провайдеров, если список получен успешно
+          content: {}
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+  /changepwd:
+    get:
+      summary: Изменить пароль аутентифицированного пользователя
+      parameters:
+        - name: sesid
+          in: query
+          description: Идентификатор сессии
+          required: true
+          schema:
+            type: string
+        - name: oldpwd
+          in: query
+          description: Заменяемый пароль
+          required: true
+          schema:
+            type: string
+        - name: newpwd
+          in: query
+          description: Новый пароль
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Успешно, если сессия с идентификатором сессии приложения sesid аутентифицированаи и старый пароль введён верно
+          content: {}
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Изменить пароль аутентифицированного пользователя
+      requestBody:
+        description: Идентификатор сессии и имя пользователя
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Name'
+      responses:
+        200:
+          description: Информация об аутентифицированном пользователе, если пользователь с таким именем существует в директории, иначе пустое тело ответа, если пользователь с таким именем не существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Name'
+        403:
+          description: Причина сессия с идентификатором sesid не аутентифицирована
+          content:
+            text/plain:
+              schema:
+                type: string
+  /checkcredentials:
+    get:
+      summary: Вернуть информацию об аутентифицированном пользователе по паре "логин-пароль"
+      parameters:
+        - name: login
+          in: query
+          description: Логин
+          required: true
+          schema:
+            type: string
+        - name: pwd
+          in: query
+          description: Пароль
+          required: true
+          schema:
+            type: string
+        - name: gp
+          in: query
+          description: Группа провайдеров
+          required: false
+          schema:
+            type: string
+        - name: ip
+          in: query
+          description: ip компьютера пользователя  для передачи в функцию проверки пользователя по логину и ip (только для SQL-провайдера аутентификации)
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Информация о пользователе, если пара «логин-пароль» верна
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credentials'
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Вернуть информацию об аутентифицированном пользователе по паре "логин-пароль"
+      requestBody:
+        description: Идентификатор сессии и имя пользователя
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+      responses:
+        200:
+          description: Информация об аутентифицированном пользователе, если пользователь с таким именем существует в директории, иначе пустое тело ответа, если пользователь с таким именем не существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credentials'
+        403:
+          description: Причина пара «логин-пароль» неверна
+          content:
+            text/plain:
+              schema:
+                type: string
+  /getproviderlist:
+    get:
+      summary: Вернуть информацию о провайдерах по паре "логин-пароль"
+      parameters:
+        - name: login
+          in: query
+          description: Логин
+          required: true
+          schema:
+            type: string
+        - name: pwd
+          in: query
+          description: Пароль
+          required: true
+          schema:
+            type: string
+        - name: gp
+          in: query
+          description: Группа провайдеров
+          required: false
+          schema:
+            type: string
+        - name: ip
+          in: query
+          description: ip компьютера пользователя  для передачи в функцию проверки пользователя по логину и ip (только для SQL-провайдера аутентификации)
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Информация о провайдерах с группой gp, если пара «логин-пароль» верна
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credentials'
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Вернуть информацию о провайдерах по паре "логин-пароль"
+      requestBody:
+        description: Идентификатор сессии и имя пользователя
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+      responses:
+        200:
+          description: Информация о провайдерах с группой gp, если пара «логин-пароль» верна
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credentials'
+        403:
+          description: Причина пара «логин-пароль» неверна
+          content:
+            text/plain:
+              schema:
+                type: string
+  /getuserlist:
+    get:
+      summary: Вернуть информацию о пользователях провайдера с идентификатором pid
+      parameters:
+        - name: token
+          in: query
+          description: Токен безопасности
+          required: true
+          schema:
+            type: string
+        - name: gp
+          in: query
+          description: Группа провайдеров
+          required: true
+          schema:
+            type: string
+        - name: ip
+          in: query
+          description: ip компьютера пользователя  для передачи в функцию проверки пользователя по логину и ip (только для SQL-провайдера аутентификации)
+          required: false
+          schema:
+            type: string
+        - name: pid
+          in: query
+          description: Идентификатор процесса
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Информация о пользователях провайдера с идентификатором pid (или всех провайдеров с группой gp, если pid не задан), в случае успеха
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Users'
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Вернуть информацию о пользователях провайдера с идентификатором pid
+      requestBody:
+        description: Токен безопасности и идентификатор pid
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Users'
+      responses:
+        200:
+          description: Информация о пользователях провайдера с идентификатором pid (или всех провайдеров с группой gp, если pid не задан)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Users'
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+  /setsettings:
+    get:
+      summary: Изменить настройки mellophone
+      parameters:
+        - name: token
+          in: query
+          description: Токен безопасности
+          required: true
+          schema:
+            type: string
+        - name: lockouttime
+          in: query
+          description: Время в минутах, на которое будет блокироваться пользователь, в случае loginattemptsallowed неудачных попыток ввода пароля
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: loginattemptsallowed
+          in: query
+          description: Количество неудачных попыток ввода пароля до блокировки пользователя
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Изменить настройки mellophone
+      requestBody:
+        description: Токен безопасности
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Settings'
+      responses:
+        200:
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+  /authentication.gif:
+    get:
+      summary: Установить сторонний куки
+      parameters:
+        - name: sesid
+          in: query
+          description: Идентификатор сессии
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Успешно
+          content: {}
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Установить сторонний куки
+      requestBody:
+        description: Токен безопасности
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Session'
+      responses:
+        200:
+          description: Успешно
+          content: {}
+        403:
+          description: Неуспешно
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  schemas:
+    CredentialsDTO:
+      type: object
+      properties:
+        sessid:
+          type: string
+        login:
+          type: string
+        pwd:
+          type: string
+        gp:
+          type: string
+        ip:
+          type: string
+    Session:
+      type: object
+      properties:
+        sessid:
+          type: string
+    ChangeSid:
+      type: object
+      properties:
+        oldsesid:
+          type: string
+        newsesid:
+          type: string
+    Name:
+      type: object
+      properties:
+        sesid:
+          type: string
+        name:
+          type: string
+    Credentials:
+      type: object
+      properties:
+        login:
+          type: string
+        pwd:
+          type: string
+        gp:
+          type: string
+        ip:
+          type: string
+    Users:
+      type: object
+      properties:
+        token:
+          type: string
+        pid:
+          type: string
+        gp:
+          type: string
+        ip:
+          type: string
+    Settings:
+      type: object
+      properties:
+        lockouttime:
+          type: integer
+          format: int64
+        loginattemptsallowed:
+          type: integer
+          format: int64
