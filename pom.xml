@@ -6,7 +6,7 @@
 
     <groupId>ru.curs</groupId>
     <artifactId>mellophone2</artifactId>
-    <version>1.3.4</version>
+    <version>1.3.5</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,9 +14,9 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
-        <spring-boot-maven-plugin.version>2.7.1</spring-boot-maven-plugin.version>
-        <spring-boot-starter-parent.version>2.7.1</spring-boot-starter-parent.version>
-        <Saxon-HE.version>11.3</Saxon-HE.version>
+        <spring-boot-maven-plugin.version>2.7.2</spring-boot-maven-plugin.version>
+        <spring-boot-starter-parent.version>2.7.2</spring-boot-starter-parent.version>
+        <Saxon-HE.version>11.4</Saxon-HE.version>
         <postgresql.version>42.4.1</postgresql.version>
     </properties>
 
