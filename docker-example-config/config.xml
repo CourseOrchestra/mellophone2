@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.curs.ru/authserver config.xsd" xmlns="http://www.curs.ru/authserver">
+
+    <common>
+        <threadcount>1</threadcount>
+        <!--
+                <sessiontimeout>1440</sessiontimeout>
+        -->
+        <authsessions initialCapacity="10000" loadFactor="80" concurrencyLevel="128"/>
+        <appsessions initialCapacity="10000" loadFactor="80" concurrencyLevel="128"/>
+        <lockouttime>20</lockouttime>
+        <loginattemptsallowed>3</loginattemptsallowed>
+        <setsettingstoken>43c42c2ee9210b0a77166a37f82bb4b6</setsettingstoken>
+        <getuserlisttoken>9ed41e1e40ff47208d8e0943b918a554</getuserlisttoken>
+        <showtimetounlockuser>true</showtimetounlockuser>
+        <checkpasswordhashonly>false</checkpasswordhashonly>
+    </common>
+
+    <xmlfile>
+        <id>test2</id>
+        <logging>true</logging>
+        <url>
+            /config/users.xml
+        </url>
+        <trusteduser>Иванов1</trusteduser>
+    </xmlfile>
+
+</config>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,24 @@
+server:
+  port: 8082
+
+
+mellophone:
+  configFile: /config/config.xml
+
+
+logging:
+  #config: C:/Users/Boris/IdeaProjects/mellophone/src/main/resources/config/samples/logback.xml
+  #file:
+    #name: D:/Downloads/27/31_mellophone/1_jar/log/mellophone.log
+  #pattern:
+    #console: ""
+    #console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    #file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    #root: INFO
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari: TRACE
+
+
+
+
