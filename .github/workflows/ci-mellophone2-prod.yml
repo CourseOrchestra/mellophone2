@@ -48,6 +48,19 @@ jobs:
           username: ${{ secrets.FTP_CURS_LOGIN }}
           password: ${{ secrets.FTP_CURS_PWD }}
           server-dir: development/curs-mellophone2/
-          local-dir: ./artifact_for_ftp/          
-       
+          local-dir: ./artifact_for_ftp/
+    - name: Build docker image
+      run: |
+        docker build -t curs/mellophone2 .
+    - name: Log in to Docker Hub
+      if: success() && github.ref == 'refs/heads/main'
+      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Push
+      if: success() && github.ref == 'refs/heads/main'
+      run: |
+        docker push curs/mellophone2:latest
+ 
 
