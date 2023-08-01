@@ -4,3 +4,13 @@ User service for applications based on Course Platform
 
 * Full documentation (in Russian): https://corchestra.ru/mellophone/2/general.html
 
+== Using with docker
+
+Directory with application.yml and configuration `.xml` file should be placed in an image `/config` directory.
+
+For example to run Mellophone from repository directory with configuration files in `docker-examle-config` directory use the following command.
+
+[source,bash]
+----
+docker run --rm -p 8080:8080 -v $PWD/docker-example-config:/config curs/mellophone2
+----
