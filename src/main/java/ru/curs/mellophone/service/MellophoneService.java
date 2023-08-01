@@ -1,11 +1,11 @@
 package ru.curs.mellophone.service;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Service;
 import ru.curs.mellophone.config.properties.MellophoneProperties;
 import ru.curs.mellophone.logic.AuthManager;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;

@@ -1,14 +1,14 @@
 package ru.curs.mellophone.controller;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.curs.mellophone.logic.EAuthServerLogic;
 import ru.curs.mellophone.service.MellophoneService;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 
 import static java.util.Objects.isNull;

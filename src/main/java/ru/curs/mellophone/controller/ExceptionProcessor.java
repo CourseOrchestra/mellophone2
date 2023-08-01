@@ -1,5 +1,6 @@
 package ru.curs.mellophone.controller;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,8 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.curs.mellophone.logic.EAuthServerLogic;
-
-import javax.validation.ConstraintViolationException;
 
 @ControllerAdvice
 public class ExceptionProcessor extends ResponseEntityExceptionHandler {
@@ -20,6 +19,7 @@ public class ExceptionProcessor extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     protected ResponseEntity<Object> handleAuthException(ConstraintViolationException ex, WebRequest request) {
-        return this.handleExceptionInternal(ex, ex.getClass().getName() + ": " + ex.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+        return this.handleExceptionInternal(ex, ex.getClass().getName() + ": " + ex.getMessage(), new HttpHeaders(),
+                HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 }
