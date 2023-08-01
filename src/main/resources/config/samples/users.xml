@@ -1,41 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <users xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.curs.ru/authserver users.xsd" xmlns="http://www.curs.ru/authserver">
-	<user login="Иванов1" password="пасс1"
-		  SID="8dbf2a31-cfe6-4188-a2f0-0125481355cd" name="Алексей В. Васильев"
-		  email="12@yandex.ru" phone="123-56-78" organization="org1" fax="fax1"/>
-	<user login="Петров" password="c8233fc18a5fd0f87284d9fa971049891315ed84"
-		  SID="f2f0dbe5-da83-4367-9827-01e7c179ea3a" name="Борис В. Смирнов"
-		  email="34@yandex.ru" phone="784-23-f5" organization="org2" fax="fax2"/>
-	<user login="Сидоров" password="пасс3"
-		  SID="5e599041-6a69-466e-b22c-f3003be536d9" name="Евгений Балмасов"
-		  email="56@yandex.ru" phone="апе-43-67" organization="org3" fax="fax3"/>
-	<user login="user222" password="pwd222"
-		  SID="8dbf2a31-cfe6-4188-a2f0-0125481355ce" name="Алексей В. Васильев"
-		  email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
+       xsi:schemaLocation="http://www.curs.ru/authserver users.xsd" xmlns="http://www.curs.ru/authserver">
+    <user login="Иванов1" password="пасс1"
+          SID="8dbf2a31-cfe6-4188-a2f0-0125481355cd" name="Алексей В. Васильев"
+          email="12@yandex.ru" phone="123-56-78" organization="org1" fax="fax1"/>
+    <user login="Петров" password="c8233fc18a5fd0f87284d9fa971049891315ed84"
+          SID="f2f0dbe5-da83-4367-9827-01e7c179ea3a" name="Борис В. Смирнов"
+          email="34@yandex.ru" phone="784-23-f5" organization="org2" fax="fax2"/>
+    <user login="Сидоров" password="пасс3"
+          SID="5e599041-6a69-466e-b22c-f3003be536d9" name="Евгений Балмасов"
+          email="56@yandex.ru" phone="апе-43-67" organization="org3" fax="fax3"/>
+    <user login="user222" password="pwd222"
+          SID="8dbf2a31-cfe6-4188-a2f0-0125481355ce" name="Алексей В. Васильев"
+          email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
 
 
-	<user login="anlug" password="vjcrdf"
-		  SID="8dbf2a31-cfe6-4188-a2f0-0125481355ce" name="Алексей В. Васильев"
-		  email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
+    <user login="anlug" password="vjcrdf"
+          SID="8dbf2a31-cfe6-4188-a2f0-0125481355ce" name="Алексей В. Васильев"
+          email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
 
 
-	<!--
+    <!--
                  SID="odmin" name="Администратор"
      -->
 
 
-	<user login="mdc2005@yandex.ru" password="master"
-		  SID="subject-490-KMuDeYOw" name="Администратор"
-		  email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
+    <user login="mdc2005@yandex.ru" password="master"
+          SID="subject-490-KMuDeYOw" name="Администратор"
+          email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
 
 
-	<user login="admin" password="master"
-		  SID="super" name="Администратор"
-		  email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
+    <user login="admin" password="master"
+          SID="super" name="Администратор"
+          email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
 
 
-	<!--
+    <user login="user1" password="2222"
+          SID="super" name="Администратор"
+          email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
+
+
+    <!--
 
         <user login="admin" password="master"
             SID="1" name="Администратор"
@@ -54,16 +59,16 @@
      -->
 
 
-	<user login="super" password="681a1d24b8758f7152c1490a3f9875e8993db8ff"
-		  SID="27d5a14e-12ce-4174-9ebe-474e0beb7ad2" name="super"
-		  email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
+    <user login="super" password="681a1d24b8758f7152c1490a3f9875e8993db8ff"
+          SID="27d5a14e-12ce-4174-9ebe-474e0beb7ad2" name="super"
+          email="12@yandex.ru" phone="123-56-78" organization="org4" fax="fax4"/>
 
 
-	<user login="kulkov" password="kulkov" SID="S-1-5-21-1482476501-1035525444-682003330-7647"
-		  name="Кульков Евгений Евгеньевич" email="-"/>
+    <user login="kulkov" password="kulkov" SID="S-1-5-21-1482476501-1035525444-682003330-7647"
+          name="Кульков Евгений Евгеньевич" email="-"/>
 
-	<user login="alibegov" password="alibegov" SID="S-1-5-21-1482476501-1035525444-682003330-15833"
-		  name="Алибегова Гулишат Алибеговна" email="test5@test2.ru"/>
+    <user login="alibegov" password="alibegov" SID="S-1-5-21-1482476501-1035525444-682003330-15833"
+          name="Алибегова Гулишат Алибеговна" email="test5@test2.ru"/>
 
 
 </users>
