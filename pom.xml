@@ -6,14 +6,13 @@
 
     <groupId>ru.curs</groupId>
     <artifactId>mellophone2</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
 
-        <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
         <spring-boot-maven-plugin.version>3.1.2</spring-boot-maven-plugin.version>
         <spring-boot-starter-parent.version>3.1.2</spring-boot-starter-parent.version>
         <Saxon-HE.version>12.3</Saxon-HE.version>
@@ -63,13 +62,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>${maven-surefire-plugin.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>net.sf.saxon</groupId>
             <artifactId>Saxon-HE</artifactId>
             <version>${Saxon-HE.version}</version>
@@ -97,11 +89,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
             </plugin>
         </plugins>
     </build>
