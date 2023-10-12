@@ -1,6 +1,6 @@
 = Mellophone
 :sectnums:
-:toc:
+:toc: left
 :toc-title: Содержание
 include::_meta.adoc[]
 
@@ -10,9 +10,11 @@ include::services.adoc[]
 
 include::melloponeconfig.adoc[]
 
-include::config.adoc[]
+== Общие настройки
+include::config.adoc[tag=body]
 
-include::sqlprovider.adoc[]
+== SQL-провайдер аутентификации
+include::sqlprovider.adoc[leveloffset=+1,tag=body]
 
 [[httpserver]]
 include::httpprovider.adoc[]
