@@ -25,4 +25,4 @@ jobs:
       run: mvn clean test
     - name: Build documentation
       run: |
-        _builddoc.sh
+        ./_builddoc.sh

@@ -64,7 +64,7 @@ jobs:
         docker push curs/mellophone2:latest
     - name: Build documentation
       run: |
-        _builddoc.sh
+        ./_builddoc.sh
     - name: Run deploy doc sight
       uses: JamesIves/github-pages-deploy-action@v4
       with:
