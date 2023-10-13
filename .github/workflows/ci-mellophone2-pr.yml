@@ -23,3 +23,6 @@ jobs:
         cache: maven
     - name: Build mellophone2 with maven
       run: mvn clean test
+    - name: Build documentation
+      run: |
+        _builddoc.sh
