@@ -2,7 +2,7 @@
 
 User service for applications based on Course Platform
 
-* Full documentation (in Russian): https://corchestra.ru/mellophone/2/general.html
+* Full documentation (in Russian): https://courseorchestra.github.io/mellophone2/
 
 == Using with docker
 
