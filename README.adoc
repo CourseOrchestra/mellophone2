@@ -12,5 +12,14 @@ For example to run Mellophone from repository directory with configuration files
 
 [source,bash]
 ----
-docker run --rm -p 8080:8080 -v $PWD/docker-example-config:/config curs/mellophone2
+docker run --rm -p 8082:8082 -v $PWD/docker-example-config:/config curs/mellophone2
 ----
+
+You may check mellophone is running by issuing the following http request:
+
+[source]
+----
+http://localhost:8082/mellophone/login?sesid=123&login=login&pwd=pwd
+----
+
+If credentials are correct you will get 200 response, otherwise you will get 403 error.
