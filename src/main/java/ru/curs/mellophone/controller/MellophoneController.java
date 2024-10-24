@@ -3,7 +3,9 @@ package ru.curs.mellophone.controller;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.curs.mellophone.logic.EAuthServerLogic;
@@ -139,15 +141,26 @@ public class MellophoneController {
         String banner;
         if (isNull(authsesidNew)) {
             if (nonNull(authsesid)) {
-                Cookie cookie = new Cookie("authsesid", null);
-                cookie.setMaxAge(0);
-                response.addCookie(cookie);
+
+                ResponseCookie cookie = ResponseCookie.from("authsesid")
+                        .secure(true)
+                        .sameSite("None")
+                        .maxAge(0)
+                        .build();
+
+                response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
             }
             banner = BW_BANNER;
         } else {
             if (!"AUTH_OK".equals(authsesidNew)) {
-                Cookie cookie = new Cookie("authsesid", authsesidNew);
-                response.addCookie(cookie);
+
+                ResponseCookie cookie = ResponseCookie.from("authsesid", authsesidNew)
+                        .secure(true)
+                        .sameSite("None")
+                        .build();
+
+                response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
             }
             banner = COLOR_BANNER;
         }
@@ -156,6 +169,7 @@ public class MellophoneController {
         byte[] array;
         try {
             assert nonNull(in);
+            assert in != null;
             array = in.readAllBytes();
         } catch (Exception e) {
             e.printStackTrace();
