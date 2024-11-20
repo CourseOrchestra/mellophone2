@@ -1,0 +1,59 @@
+name: Release generation
+
+on: 
+  workflow_call:
+    inputs:
+      VUH_VERSION: { required: true, type: string }
+      CHANGELOG_GENERATOR_VERSION: { required: true, type: string }
+
+jobs:
+
+  generate_release_from_new_commits:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Git clone this repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: download vuh
+        run: |
+          curl https://raw.githubusercontent.com/Greewil/version-update-helper/${{ inputs.VUH_VERSION }}/vuh.sh -O -J -L
+          chmod +x vuh.sh
+
+      - name: download release notes generator
+        run: |
+          curl https://raw.githubusercontent.com/Greewil/release-notes-generator/${{ inputs.CHANGELOG_GENERATOR_VERSION }}/gen_release_notes.sh -O -J -L
+          chmod +x gen_release_notes.sh
+
+      - name: get release tag_name
+        id: release_tag
+        run: |
+          cur_version=$(./vuh.sh lv -q)
+          [ "$cur_version" != '' ] || exit 1
+          echo "release version: $cur_version" 
+          echo "RELEASE_TAG=$cur_version" >> "$GITHUB_OUTPUT"
+
+      - name: generate release notes
+        id: changelog
+        run: |
+          ./gen_release_notes.sh -i .. -lt -f changelog.md
+          [ -f "changelog.md" ] && CHANGELOG=$(cat changelog.md) || CHANGELOG=''
+          echo "$CHANGELOG"
+          echo 'FINAL_CHANGELOG<<EOF' >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+          [ -f 'changelog.md' ] && echo "IS_EMPTY=false" >> "$GITHUB_OUTPUT"
+          [ -f 'changelog.md' ] || echo "IS_EMPTY=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        if: ${{ steps.changelog.outputs.IS_EMPTY == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "${{ steps.release_tag.outputs.RELEASE_TAG }}"
+          release_name: "${{ steps.release_tag.outputs.RELEASE_TAG }}"
+          body: ${{ steps.changelog.outputs.FINAL_CHANGELOG }}
