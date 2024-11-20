@@ -1,0 +1,8 @@
+
+All workflows that will be called before pr should be called from ci-pr.yml.
+All workflows that will be called after pushing to main should be called from ci-push.yml.
+
+Tests, linters and other quality assurance for module should run inside of workflow named "quality-assurance.yml".
+Building and deploying artifact logic for module should run inside of workflow named "deploy.yml".
+
+For version validation you should specify version obtaining logic in .vuh file.

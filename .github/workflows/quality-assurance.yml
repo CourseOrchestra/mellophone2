@@ -1,28 +1,30 @@
 # This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: ci-mellophone2-pr
+name: Quality Assurance API
 
 on:
-  pull_request:
-    branches: [ main ]
+  workflow_call:
 
 jobs:
   build:
-
+    name: Quality Assurance API
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+
     - name: Set up JDK 17 enviroment on ubuntu-latest...
       uses: actions/setup-java@v2
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-    - name: Build mellophone2 with maven
+
+    - name: Build mellophone2 with maven and run tests
       run: mvn clean test
+
     - name: Build documentation
       run: |
         ./_builddoc.sh

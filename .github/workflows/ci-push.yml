@@ -1,0 +1,16 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+
+  deploy-api:
+    name: Deploy api module
+    uses: ./.github/workflows/deploy.yml
+    with:
+      VUH_VERSION: 'v2.9.2'
+    secrets:
+      CONTAINER_REGISTRY_AUTH_TOKEN: ${{ secrets.DOCKER_USERNAME }}
+      CONTAINER_REGISTRY_AUTH_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
