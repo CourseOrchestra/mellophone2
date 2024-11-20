@@ -12,5 +12,5 @@ jobs:
     with:
       VUH_VERSION: 'v2.9.2'
     secrets:
-      CONTAINER_REGISTRY_AUTH_TOKEN: ${{ secrets.DOCKER_USERNAME }}
-      CONTAINER_REGISTRY_AUTH_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
