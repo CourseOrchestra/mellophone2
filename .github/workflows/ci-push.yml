@@ -7,7 +7,7 @@ on:
 jobs:
 
   deploy:
-    name: Deploy api module
+    name: Deploy mellophone2
     uses: ./.github/workflows/deploy.yml
     with:
       VUH_VERSION: 'v2.9.2'
