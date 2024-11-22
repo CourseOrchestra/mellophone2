@@ -8,6 +8,10 @@ on:
     inputs:
       VUH_VERSION: { required: true, type: string }
     secrets:
+      FTP_CURS_LOGIN:
+        required: true
+      FTP_CURS_PWD:
+        required: true
       DOCKER_USERNAME:
         required: true
       DOCKER_PASSWORD:

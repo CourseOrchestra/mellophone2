@@ -12,6 +12,8 @@ jobs:
     with:
       VUH_VERSION: 'v2.9.2'
     secrets:
+      FTP_CURS_LOGIN: ${{ secrets.FTP_CURS_LOGIN }}
+      FTP_CURS_PWD: ${{ secrets.FTP_CURS_PWD }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
