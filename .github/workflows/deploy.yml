@@ -1,46 +1,58 @@
 # This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: ci-mellophone2-prod
+name: Deploy mellophone2
 
-# Triggers the workflow on push or pull request events but only for the master branch
 on:
-  push:
-    branches: [ main ]
+  workflow_call:
+    inputs:
+      VUH_VERSION: { required: true, type: string }
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-
+    name: Deploy mellophone2
     runs-on: ubuntu-latest
-
+    environment: deployenv
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+      - name: Download vuh
+        run: |
+          curl https://raw.githubusercontent.com/Greewil/version-update-helper/${{ inputs.VUH_VERSION }}/vuh.sh -O -J -L
+          chmod +x vuh.sh
+      - name: Get release version
+        id: artifact_version
+        run: |
+          cur_version=$(./vuh.sh lv -q)
+          echo "release version: $cur_version" 
+          echo "VERSION=$cur_version" >> "$GITHUB_OUTPUT"
       - name: Set up JDK 17 enviroment on ubuntu-latest...
         uses: actions/setup-java@v2
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+
       - name: Build mellophone2 with maven
         run: mvn clean package
-      - name: Extract pom project version
-        run: echo ::set-output name=version::$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-        id: projectversiongroup
       - uses: papeloto/action-zip@v1
         with:
           files:
-            target/mellophone2-${{ steps.projectversiongroup.outputs.version }}.jar
+            target/mellophone2-${{ steps.artifact_version.outputs.VERSION }}.jar
             target/classes/application.yml
             target/classes/config/config.xml
-          dest: ./artifact_for_ftp/mellophone2-${{ steps.projectversiongroup.outputs.version }}.zip
+          dest: ./artifact_for_ftp/mellophone2-${{ steps.artifact_version.outputs.VERSION }}.zip
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mellophone2-${{ steps.projectversiongroup.outputs.version }}
-          path: ./artifact_for_ftp/mellophone2-${{ steps.projectversiongroup.outputs.version }}.zip
+          name: mellophone2-${{ steps.artifact_version.outputs.VERSION }}
+          path: ./artifact_for_ftp/mellophone2-${{ steps.artifact_version.outputs.VERSION }}.zip
+
       - name: 📂 Upload artifact to ftp
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
         with:
@@ -49,19 +61,21 @@ jobs:
           password: ${{ secrets.FTP_CURS_PWD }}
           server-dir: development/curs-mellophone2/
           local-dir: ./artifact_for_ftp/
-      - name: Build docker image
-        run: |
-          docker build -t curs/mellophone2 .
-      - name: Log in to Docker Hub
+
+      - name: Login to container registry (to Docker Hub)
         if: success() && github.ref == 'refs/heads/main'
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Push
+      - name: Build and push
         if: success() && github.ref == 'refs/heads/main'
-        run: |
-          docker push curs/mellophone2:latest
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: curs/mellophone2:latest , curs/mellophone2:${{ steps.artifact_version.outputs.VERSION }}
+          context: .
+
       - name: Build documentation
         run: |
           ./_builddoc.sh

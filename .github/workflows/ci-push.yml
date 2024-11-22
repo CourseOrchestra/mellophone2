@@ -1,0 +1,24 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+
+  deploy:
+    name: Deploy mellophone2
+    uses: ./.github/workflows/deploy.yml
+    with:
+      VUH_VERSION: 'v2.9.2'
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  release-notes-generation:
+    name: Release generation
+    uses: ./.github/workflows/release-notes-generation.yml
+    with:
+      VUH_VERSION: 'v2.9.2'
+      CHANGELOG_GENERATOR_VERSION: 'v1.0.2'
+    needs: [deploy]

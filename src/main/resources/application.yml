@@ -2,8 +2,10 @@
 #  port: 8082
 
 server:
-  port: 443
+#  port: 443
+  port: 8082
   ssl:
+    enabled: false
     key-store: keystore.p12
     key-store-password: sdgdhfjhjghjghjghjgh
     keyStoreType: PKCS12
@@ -13,7 +15,8 @@ server:
 
 
 mellophone:
-  configFile: D:/IdeaProjects/mellophone2/src/main/resources/config/config.xml
+  configFile: src/main/resources/config/config.xml
+#  configFile: D:/IdeaProjects/mellophone2/src/main/resources/config/config.xml
 
 
 

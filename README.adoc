@@ -19,7 +19,7 @@ You may check mellophone is running by issuing the following http request:
 
 [source]
 ----
-http://localhost:8082/mellophone/login?sesid=123&login=login&pwd=pwd
+http://localhost:8082/mellophone/login?sesid=123&login=user222&pwd=pwd222
 ----
 
 If credentials are correct you will get 200 response, otherwise you will get 403 error.
